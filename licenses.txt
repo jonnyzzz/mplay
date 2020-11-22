@@ -1,0 +1,5 @@
+This packages uses
+
+ - bytebuddy (Apache 2.0)
+ - Kotlin (Apache 2.0)
+
