@@ -13,10 +13,10 @@ class MPlayInterceptor {
         @This thiz: Any,
         @AllArguments vararg args: Any
     ): Any? {
-        println("Calling of $thiz with ${args.contentToString()}")
+        println("[$this] Calling of $thiz with ${args.contentToString()}")
         //serialize arguments
         val r = zuper.call()
-        println("Calling of $thiz with ${args.contentToString()}: result $r")
+        println("[$this] Calling of $thiz with ${args.contentToString()}: result $r")
         return r
     }
 
@@ -27,10 +27,10 @@ class MPlayInterceptor {
         @This thiz: Any,
         @Argument(0) a: Int
     ): Any? {
-        println("Calling of $thiz with x[$a]")
+        println("[$this] Calling of $thiz with x[$a]")
         //serialize arguments
         val r = zuper.call()
-        println("Calling of $thiz with x[$a]: result $r")
+        println("[$this] Calling of $thiz with x[$a]: result $r")
         return r
     }
 }
