@@ -46,6 +46,7 @@ private fun premainImpl(
     instrumentation: Instrumentation
 ) {
     val interceptor = MPlayInterceptor()
+    println("Interceptor instance: $interceptor")
     AgentBuilder.Default()
         .type(args.typeMatcher())
         .transform { builder: DynamicType.Builder<*>,
