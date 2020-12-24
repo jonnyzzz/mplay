@@ -3,7 +3,7 @@ package com.jonnyzzz.mplay.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-val mplayVersion = "TODO"
+private const val mplayVersion = "SNAPSHOT"
 
 @Suppress("unused")
 class MPlayPlugin : Plugin<Project> {
@@ -11,8 +11,13 @@ class MPlayPlugin : Plugin<Project> {
         val ext = MPlayExtensionImpl(project)
         project.extensions.add(MPlayExtension::class.java, "mplay", ext)
 
-        //this does not work, will need to switch to a local maven repo for all artifacts
-        //project.dependencies.add("implementation", "com.jonnyzzz.mplay:config:$mplayVersion")
+        project.plugins.apply("java")
+        project.dependencies.apply {
+            add(
+                "implementation",
+                module("com.jonnyzzz.mplay:config:$mplayVersion")
+            )
+        }
 
         val generateStubsTask = project.tasks.create("mplayGenerateStubsTask")
         val buildAgentTask = project.tasks.create("mplayBuildJavaagent")

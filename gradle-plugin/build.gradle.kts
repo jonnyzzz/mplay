@@ -5,19 +5,31 @@ plugins {
     kotlin("jvm") version "1.3.71" // we use 1.3.x to avoid conflicts with Gradle
 }
 
-val pluginName = "method-call-player"
+val pluginName = "mplay"
 
 repositories {
     google()
     mavenCentral()
 }
 
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("pluginMaven") {
+            artifactId = "mplay-gradle"
+        }
+    }
+}
+
 gradlePlugin {
     testSourceSets( sourceSets.test.get())
 
     plugins {
-
         create(pluginName) {
+            this.id = "mplay-gradle"
             id = "com.jonnyzzz.mplay"
             implementationClass = "com.jonnyzzz.mplay.gradle.MPlayPlugin"
         }
@@ -32,8 +44,7 @@ dependencies {
     testImplementation("junit:junit:4.13")
 }
 
-project.version = System.getenv("BUILD_NUMBER") ?: "SNAPSHOT"
-project.group = "com.jonnyzzz.mplay"
+apply(from = File(rootProject.projectDir, "../common.gradle.kts"))
 
 pluginBundle {
     website = "https://jonnyzzz.com/mplay"

@@ -2,12 +2,5 @@ plugins {
     kotlin("jvm") version "1.4.20" apply false
 }
 
-subprojects {
-    group = "com.jonnyzzz.mplay"
+apply(from = File(rootProject.projectDir, "../common.gradle.kts"))
 
-    repositories {
-        google()
-        mavenCentral()
-        jcenter()
-    }
-}
