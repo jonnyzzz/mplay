@@ -1,14 +1,10 @@
 plugins {
-    kotlin("jvm")
-    id("com.jonnyzzz.mplay") version "use-the-latest-version"
+    kotlin("jvm") version "1.4.20" apply false
 }
 
-repositories {
-    mavenCentral()
-}
-
-
-mplay {
-
+subprojects {
+    repositories {
+        mavenCentral()
+    }
 }
 

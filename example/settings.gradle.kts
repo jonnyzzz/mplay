@@ -15,4 +15,5 @@ pluginManagement {
 includeBuild("${rootProject.projectDir}/../gradle-plugin")
 
 
-include(":how-to-use-the-plugin")
+include(":how-to-use-the-plugin:the-app")
+include(":how-to-use-the-plugin:the-mplay")
