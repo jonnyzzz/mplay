@@ -3,10 +3,11 @@ plugins {
 }
 
 subprojects {
+    group = "com.jonnyzzz.mplay"
+
     repositories {
         google()
         mavenCentral()
         jcenter()
     }
 }
-
