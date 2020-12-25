@@ -1,9 +1,6 @@
 package com.jonnyzzz.mplay.config
 
-annotation class MPlayConfig {
-
-}
-
+annotation class MPlayConfig
 
 /**
  * The entry point for the MPlay configuration,
@@ -11,11 +8,11 @@ annotation class MPlayConfig {
  * default constructor or as a Kotlin Object.
  *
  * The [T] is the type of the class, which will be
- * enchanced to record all calls from it.
+ * enhanced to record all calls from it.
  *
  * This interface defines the configuration
  * of the MPLay
  */
-interface MPlayConfiguration<T : Any> {
+interface MPlayConfiguration<T> {
 
 }
