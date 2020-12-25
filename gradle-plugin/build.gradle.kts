@@ -46,6 +46,35 @@ dependencies {
 
 apply(from = File(rootProject.projectDir, "../common.gradle.kts"))
 
+val versionRoot = File(buildDir, "version")
+
+sourceSets {
+    getByName("main").java.srcDir(versionRoot)
+}
+
+val generateVersion by tasks.creating {
+    val versionFile = File(versionRoot, "version.kt")
+    sourceSets["main"].java.srcDirs += versionFile.parentFile
+    inputs.property("version", version)
+    outputs.file(versionFile)
+    doFirst {
+        versionFile.parentFile?.mkdirs()
+        versionFile.writeText("""
+            package com.jonnyzzz.mplay.gradle.generated
+
+            //!!!!!!!!!!!!
+            //!!!!!!!!!!!!  NOTE: THIS FILES IS GENERATED !!!!!!!!!!!!!!!
+            //!!!!!!!!!!!!
+            
+            object MPlayVersions {
+                const val buildNumber = "$version" 
+            }
+            
+        """.trimIndent())
+    }
+}
+
+
 pluginBundle {
     website = "https://jonnyzzz.com/mplay"
     description = "" +
@@ -64,6 +93,7 @@ pluginBundle {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+    dependsOn(generateVersion)
 }
 
 @Suppress("UnstableApiUsage")

@@ -2,8 +2,9 @@ package com.jonnyzzz.mplay.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import com.jonnyzzz.mplay.gradle.generated.MPlayVersions
 
-private const val mplayVersion = "SNAPSHOT"
+private const val mplayVersion = MPlayVersions.buildNumber
 
 @Suppress("unused")
 class MPlayPlugin : Plugin<Project> {
