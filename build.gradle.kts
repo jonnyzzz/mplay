@@ -5,12 +5,12 @@ val prepareDevelopment by tasks.creating {
         exec {
             //this step is needed to include all dependencies into the local maven repo
             workingDir = File(projectDir, "platform")
-            commandLine("./gradlew", "publishToMavenLocal")
+            commandLine("./gradlew", "publishToMavenLocalForExamples")
         }
         exec {
             //this step is needed to include all dependencies into the local maven repo
             workingDir = File(projectDir, "gradle-plugin")
-            commandLine("./gradlew", "publishToMavenLocal")
+            commandLine("./gradlew", "publishToMavenLocalForExamples")
         }
     }
 }

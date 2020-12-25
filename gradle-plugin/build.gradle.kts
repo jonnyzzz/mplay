@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id("com.gradle.plugin-publish") version "0.12.0"
     `maven-publish`
@@ -40,7 +42,6 @@ gradlePlugin {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect")) //to avoid versions clash
-//  testImplementation(gradleTestKit())
     testImplementation("junit:junit:4.13")
 }
 
@@ -54,9 +55,9 @@ sourceSets {
 
 val generateVersion by tasks.creating {
     val versionFile = File(versionRoot, "version.kt")
-    sourceSets["main"].java.srcDirs += versionFile.parentFile
     inputs.property("version", version)
     outputs.file(versionFile)
+
     doFirst {
         versionFile.parentFile?.mkdirs()
         versionFile.writeText("""
@@ -74,6 +75,20 @@ val generateVersion by tasks.creating {
     }
 }
 
+tasks.compileKotlin.configure {
+    dependsOn(generateVersion)
+}
+
+tasks.classes.configure {
+    gradle.includedBuilds.forEach {
+        println("     = ${it.name} : ${it.projectDir}")
+    }
+    dependsOn(gradle.includedBuild("platform").task(":publishToMavenLocalForExamples"))
+}
+
+val publishToMavenLocalForExamples by tasks.creating {
+    dependsOn(tasks.publishToMavenLocal)
+}
 
 pluginBundle {
     website = "https://jonnyzzz.com/mplay"
@@ -91,14 +106,4 @@ pluginBundle {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-    dependsOn(generateVersion)
-}
-
-@Suppress("UnstableApiUsage")
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
 
