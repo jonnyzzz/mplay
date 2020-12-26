@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm")
-    id("com.jonnyzzz.mplay") version "use-the-latest-version"
+    id("com.jonnyzzz.mplay") version "SNAPSHOT" // use real version
 }
 
 repositories {

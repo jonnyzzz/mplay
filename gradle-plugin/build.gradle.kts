@@ -79,13 +79,6 @@ tasks.compileKotlin.configure {
     dependsOn(generateVersion)
 }
 
-tasks.classes.configure {
-    gradle.includedBuilds.forEach {
-        println("     = ${it.name} : ${it.projectDir}")
-    }
-    dependsOn(gradle.includedBuild("platform").task(":publishToMavenLocalForExamples"))
-}
-
 val publishToMavenLocalForExamples by tasks.creating {
     dependsOn(tasks.publishToMavenLocal)
 }
