@@ -11,11 +11,18 @@ object BuilderMain {
     @JvmStatic
     fun main(args: Array<String>) {
         println("MPlay Agent Builder ${MPlayVersions.buildNumber}")
+        println()
 
-        val classFiles = args
-            .toList()
-            .mapNotNull { it.substringOrNull("--classpath=") }
+        val classpathParam: List<String> = args
+            .param("classpath")
             .flatMap { it.split(File.pathSeparator) }
+
+        val classpathFromFile: List<String> = args
+            .param("classpathFile")
+            .mapNotNull { kotlin.runCatching { File(it).readText() }.getOrNull() }
+            .flatMap { it.splitToSequence("\n").mapNotNull { it.trimAndNullIfBlank() } }
+
+        val classFiles = (classpathParam + classpathFromFile)
             .map { Paths.get(it) }
             .flatMap {
                 when {
@@ -37,6 +44,7 @@ object BuilderMain {
     }
 }
 
+private fun Array<String>.param(key: String) = mapNotNull { it.substringOrNull("--$key=") }
 
 private fun String.substringOrNull(prefix: String): String? {
     return if (this.startsWith(prefix)) {
@@ -46,3 +54,4 @@ private fun String.substringOrNull(prefix: String): String? {
     }
 }
 
+private fun String.trimAndNullIfBlank(): String? = this.trim().run { if (isNotEmpty()) this else null }
