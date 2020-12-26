@@ -46,6 +46,12 @@ tasks.compileKotlin.configure {
     dependsOn(copyMPlayAgent)
 }
 
+tasks.jar.configure {
+    manifest {
+        attributes( "Main-Class" to application.mainClass.get())
+    }
+}
+
 val versionRoot = File(buildDir, "version")
 
 sourceSets {

@@ -15,17 +15,18 @@ object BuilderMain {
         val classFiles = args
             .toList()
             .mapNotNull { it.substringOrNull("--classpath=") }
-            .flatMap { it.split(File.separator) }
+            .flatMap { it.split(File.pathSeparator) }
             .map { Paths.get(it) }
             .flatMap {
                 when {
-                    Files.isRegularFile(it) && it.fileName.toString().endsWith(".jar") -> FileSystems.newFileSystem(it, null).rootDirectories.toList()
+                    Files.isRegularFile(it) && it.fileName.toString().endsWith(".jar") -> FileSystems.newFileSystem(it,null).rootDirectories.toList()
                     Files.isDirectory(it) -> listOf(it)
                     else -> emptyList()
                 }
             }
+            .filterNotNull()
             .flatMap {
-                Files.walk(it).filter { it.fileName.toString().endsWith(".class") }.toList()
+                Files.walk(it).filter { it?.fileName?.toString()?.endsWith(".class") == true }.toList()
             }
 
         println("Collected ${classFiles.size} setup class files")
