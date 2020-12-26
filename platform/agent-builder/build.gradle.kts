@@ -1,14 +1,12 @@
+
 plugins {
     kotlin("jvm")
+    id("com.github.johnrengelman.shadow")
     `java-library`
     `maven-publish`
-    `application`
 }
 
-application {
-    mainClass.set("com.jonnyzzz.mplay.agent.builder.BuilderMain")
-}
-
+val mplayMainClassName = "com.jonnyzzz.mplay.agent.builder.BuilderMain"
 val agentJar by configurations.creating
 
 dependencies {
@@ -26,8 +24,9 @@ java {
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+        create<MavenPublication>("maven-shadow") {
+            shadow.component(this)
+            artifact(tasks.kotlinSourcesJar)
         }
     }
 }
@@ -46,10 +45,21 @@ tasks.compileKotlin.configure {
     dependsOn(copyMPlayAgent)
 }
 
-tasks.jar.configure {
+tasks.shadowJar.configure {
     manifest {
-        attributes( "Main-Class" to application.mainClass.get())
+        attributes("Main-Class" to mplayMainClassName)
     }
+
+    archiveClassifier.set("")
+
+    relocate("net.bytebuddy", "com.jonnyzzz.mplay.shadow.net.bytebuddy")
+    relocate("kotlin", "com.jonnyzzz.mplay.shadow.kotlin")
+    relocate("org.intellij", "com.jonnyzzz.mplay.shadow.org.intellij")
+    relocate("org.jetbrains", "com.jonnyzzz.mplay.shadow.org.jetbrains")
+    minimize()
+
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }
 
 val versionRoot = File(buildDir, "version")
