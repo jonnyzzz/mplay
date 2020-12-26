@@ -29,7 +29,7 @@ sourceSets {
     }
 }
 
-tasks.withType(Jar::class.java) {
+tasks.shadowJar.configure {
     manifest {
         attributes("Premain-Class" to "org.jonnyzzz.mplay.agent.MPlayAgent")
     }

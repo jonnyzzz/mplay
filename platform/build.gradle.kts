@@ -6,4 +6,5 @@ apply(from = File(rootProject.projectDir, "../common.gradle.kts"))
 
 val publishToMavenLocalForExamples by tasks.creating {
     dependsOn(":config:publishToMavenLocal")
+    dependsOn(":agent-builder:publishToMavenLocal")
 }
