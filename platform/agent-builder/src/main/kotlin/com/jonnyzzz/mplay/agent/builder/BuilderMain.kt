@@ -2,16 +2,33 @@ package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.agent.builder.generated.MPlayVersions
 import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.streams.toList
 
 object BuilderMain {
     @JvmStatic
     fun main(args: Array<String>) {
         println("MPlay Agent Builder ${MPlayVersions.buildNumber}")
 
-        val classpath = args
+        val classFiles = args
             .toList()
             .mapNotNull { it.substringOrNull("--classpath=") }
             .flatMap { it.split(File.separator) }
+            .map { Paths.get(it) }
+            .flatMap {
+                when {
+                    Files.isRegularFile(it) && it.fileName.toString().endsWith(".jar") -> FileSystems.newFileSystem(it, null).rootDirectories.toList()
+                    Files.isDirectory(it) -> listOf(it)
+                    else -> emptyList()
+                }
+            }
+            .flatMap {
+                Files.walk(it).filter { it.fileName.toString().endsWith(".class") }.toList()
+            }
+
+        println("Collected ${classFiles.size} setup class files")
 
         val agentJar = BuilderMain::class.java.getResourceAsStream("/mplay-agent/mplay-agent.jar")
             ?: error("Failed to resolve the agent stub jar from resources")
