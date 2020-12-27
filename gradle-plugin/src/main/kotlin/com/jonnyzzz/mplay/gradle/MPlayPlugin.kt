@@ -62,6 +62,7 @@ class MPlayPlugin : Plugin<Project> {
             task.run {
                 group = "mplay"
                 dependsOn(buildAgentBuilderTaskUnpack)
+                dependsOn(project.tasks.named("classes"))
 
                 inputs.property("version", mplayVersion)
                 mainClass.set("com.jonnyzzz.mplay.agent.builder.BuilderMain")
