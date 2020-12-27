@@ -9,6 +9,10 @@ application {
     mainClass.set("com.jonnyzzz.mplay.agent.builder.BuilderMain")
 }
 
+tasks.run.configure {
+    args("--classpathFile=${rootProject.projectDir}/../example/how-to-use-the-plugin/the-mplay/build/mplay/generate-classpath.txt")
+}
+
 val agentJar by configurations.creating
 
 dependencies {
