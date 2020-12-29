@@ -20,6 +20,8 @@ dependencies {
 
     implementation(project(":config"))
     implementation("org.ow2.asm:asm:9.0")
+    implementation("com.squareup:kotlinpoet:1.7.2")
+    implementation("org.reflections:reflections:0.9.12")
 
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("ch.qos.logback:logback-classic:1.2.3")
