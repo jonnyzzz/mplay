@@ -1,4 +1,4 @@
-package org.jonnyzzz.mplay.agent
+package com.jonnyzzz.mplay.agent
 
 import net.bytebuddy.agent.builder.AgentBuilder
 import net.bytebuddy.description.type.TypeDefinition

@@ -4,7 +4,8 @@ plugins {
 }
 
 dependencies {
-    implementation("net.bytebuddy:byte-buddy:1.10.18")
+    implementation("net.bytebuddy:byte-buddy-dep:1.10.19")
+    implementation("org.ow2.asm:asm:9.0")
     testImplementation("junit:junit:4.12")
 }
 
@@ -16,34 +17,34 @@ sourceSets {
         runtimeClasspath += test.runtimeClasspath
     }
 
-    val shadowJar = tasks.getByName("shadowJar") as com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
+    @Suppress("UNUSED_VARIABLE")
     val runSmoke1 by tasks.creating(JavaExec::class.java) {
-        dependsOn(shadowJar)
+        group = "verification"
+        dependsOn(tasks.shadowJar)
         mainClass.set("org.jonnyzzz.mplay.agent.smoke1.MainKt")
         doFirst {
             classpath = smoke1.runtimeClasspath
             enableAssertions = true
-            jvmArgs = listOf("-javaagent:${shadowJar.archiveFile.get().asFile}")
+            jvmArgs = listOf("-javaagent:${tasks.shadowJar.get().archiveFile.get().asFile}")
         }
     }
 }
 
 tasks.shadowJar.configure {
     manifest {
-        attributes("Premain-Class" to "org.jonnyzzz.mplay.agent.MPlayAgent")
+        attributes(
+            "Premain-Class" to "com.jonnyzzz.mplay.agent.MPlayAgent",
+
+            "Can-Redefine-Classes" to false,
+            "Can-Set-Native-Method-Prefix" to false
+        )
     }
-}
 
-tasks.withType(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class.java) {
-    relocate("net.bytebuddy", "org.jonnyzzz.mplay.shadow.net.bytebuddy")
-    relocate("kotlin", "org.jonnyzzz.mplay.shadow.kotlin")
-    relocate("org.intellij", "org.jonnyzzz.mplay.shadow.org.intellij")
-    relocate("org.jetbrains", "org.jonnyzzz.mplay.shadow.org.jetbrains")
+    fun relocate(pkg: String) = relocate(pkg, "com.jonnyzzz.mplay.shadow.$pkg")
+    fun relocateAll(vararg pkg: String) = pkg.forEach { relocate(it) }
+    relocateAll("kotlin", "net.bytebuddy", "org.intellij", "org.jetbrains", "org.objectweb.asm")
     minimize()
-}
 
-tasks.withType(AbstractArchiveTask::class.java) {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }

@@ -1,4 +1,4 @@
-package org.jonnyzzz.mplay.agent
+package com.jonnyzzz.mplay.agent
 
 import net.bytebuddy.implementation.bind.annotation.*
 import java.lang.Exception
