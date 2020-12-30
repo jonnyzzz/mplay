@@ -29,3 +29,9 @@ class ExampleService  : ExampleServiceBase() {
 }
 
 
+class GenericService<R, Y> {
+    fun putR(r: R) = Unit
+    fun getY(): Y? = null
+    fun test(r: R, y: Y) = Unit
+}
+
