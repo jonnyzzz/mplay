@@ -20,48 +20,28 @@ class ConfigurationClasspath(
         URLClassLoader(classpath.mapNotNull { runCatching { it.toUri().toURL() }.getOrNull() }.toTypedArray(), null)
     }
 
+    val annotationType by lazy { classloader.loadClass(MPlayConfig::class.java.name) }
+    val configType by lazy { classloader.loadClass(MPlayConfiguration::class.java.name) }
+
     val configurationClasses: List<ConfigurationClass<*>> by lazy {
-        val annotationType = classloader.loadClass(MPlayConfig::class.java.name)
-        val configType = classloader.loadClass(MPlayConfiguration::class.java.name)
-
-        @Suppress("UNCHECKED_CAST")
-        val configClasses = Reflections(classloader)
-            .getTypesAnnotatedWith(annotationType as Class<out Annotation>, false)
-            .filterNotNull()
-            .toList()
-
-        configClasses.map { configClazz ->
-            if (!configType.isAssignableFrom(configClazz)) {
-                error("The MPlay configuration ${configClazz.name} must " +
-                        "directly implement ${MPlayConfiguration::class.java.name}")
-            }
-
-            val interceptType = configClazz.genericInterfaces.mapNotNull {
-                if (it !is ParameterizedType) return@mapNotNull null
-                val rawType = it.rawType as? Class<*> ?: return@mapNotNull null
-                if (rawType != configType) return@mapNotNull null
-                it.actualTypeArguments.single()
-            }.singleOrNull() ?: error("The MPlay configuration ${configClazz.name} must " +
-                    "directly implement ${MPlayConfiguration::class.java.name}")
-
-            @Suppress("UNCHECKED_CAST")
-            ConfigurationClass(
-                configClass = configClazz as Class<out MPlayConfiguration<Any>>,
-                interceptType = interceptType
-            )
-        }
+        resolveConfigurationClasses(this)
     }
 }
 
-data class ConfigurationClass<T>(
-    val configClass: Class<out MPlayConfiguration<T>>,
+private fun resolveConfigurationClasses(classpath: ConfigurationClasspath): List<ConfigurationClass<*>> {
+    @Suppress("UNCHECKED_CAST")
+    val configClasses = Reflections(classpath.classloader)
+        .getTypesAnnotatedWith(classpath.annotationType as Class<out Annotation>, false)
+        .filterNotNull()
+        .toList()
 
-    /**
-     * The class that we use to record (and later play) the
-     * method calls (aka events)
-     */
-    val interceptType: java.lang.reflect.Type
-)
+    val result = mutableListOf<ConfigurationClass<*>>()
+
+    for (configClazz in configClasses) {
+        result += ConfigurationClass.fromConfigClass(classpath, configClazz)
+    }
+    return result
+}
 
 fun resolveConfiguration(args: Array<String>) = ConfigurationClasspath(
     classpath = resolveAppClassFiles(args),
