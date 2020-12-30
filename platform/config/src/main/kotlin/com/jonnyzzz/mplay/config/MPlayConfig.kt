@@ -19,5 +19,11 @@ annotation class MPlayConfig
  * of the MPLay
  */
 interface MPlayConfiguration<T> {
-
+    /**
+     * Specified **inclusive** upper bound in base classes
+     * hierarchy to limit the number of methods that will
+     * be intercepted. The [Any] or [java.lang.Object] is
+     * the default value
+     */
+    val upperLimit: Class<*> get() = java.lang.Object::class.java
 }

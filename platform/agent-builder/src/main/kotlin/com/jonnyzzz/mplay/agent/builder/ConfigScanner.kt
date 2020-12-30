@@ -5,7 +5,6 @@ import com.jonnyzzz.mplay.config.MPlayConfiguration
 import org.objectweb.asm.*
 import org.reflections.Reflections
 import java.io.File
-import java.lang.reflect.ParameterizedType
 import java.net.URLClassLoader
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -16,29 +15,39 @@ import kotlin.streams.toList
 class ConfigurationClasspath(
     val classpath: List<Path>,
 ) {
-    val classloader by lazy  {
-        URLClassLoader(classpath.mapNotNull { runCatching { it.toUri().toURL() }.getOrNull() }.toTypedArray(), null)
-    }
-
+    val classloader by lazy { loadConfigurationClasses() }
     val annotationType by lazy { classloader.loadClass(MPlayConfig::class.java.name) }
     val configType by lazy { classloader.loadClass(MPlayConfiguration::class.java.name) }
+    val configurationClasses by lazy { resolveConfigurationClasses() }
+}
 
-    val configurationClasses: List<ConfigurationClass<*>> by lazy {
-        resolveConfigurationClasses(this)
+private fun ConfigurationClasspath.loadConfigurationClasses(): URLClassLoader {
+    val ourLoader = javaClass.classLoader
+    val urls = classpath.mapNotNull { runCatching { it.toUri().toURL() }.getOrNull() }.toTypedArray()
+    return object : URLClassLoader(urls, null) {
+        private val packagePrefix = MPlayConfig::class.java.packageName + "."
+
+        override fun loadClass(name: String, resolve: Boolean): Class<*> {
+            //we make sure we load config classes from our classpath
+            if (name.startsWith(packagePrefix)) {
+                return ourLoader.loadClass(name)
+            }
+            return super.loadClass(name, resolve)
+        }
     }
 }
 
-private fun resolveConfigurationClasses(classpath: ConfigurationClasspath): List<ConfigurationClass<*>> {
+private fun ConfigurationClasspath.resolveConfigurationClasses(): List<ConfigurationClass> {
     @Suppress("UNCHECKED_CAST")
-    val configClasses = Reflections(classpath.classloader)
-        .getTypesAnnotatedWith(classpath.annotationType as Class<out Annotation>, false)
+    val configClasses = Reflections(classloader)
+        .getTypesAnnotatedWith(annotationType as Class<out Annotation>, false)
         .filterNotNull()
         .toList()
 
-    val result = mutableListOf<ConfigurationClass<*>>()
+    val result = mutableListOf<ConfigurationClass>()
 
     for (configClazz in configClasses) {
-        result += ConfigurationClass.fromConfigClass(classpath, configClazz)
+        result += ConfigurationClass.fromConfigClass(this, configClazz)
     }
     return result
 }
@@ -67,12 +76,12 @@ private fun resolveAppClassFiles(args: Array<String>): List<Path> {
     return allRoots
 }
 
-private fun listAllClasses(classpath: List<Path>) : List<Path> {
+private fun listAllClasses(classpath: List<Path>): List<Path> {
     val classFiles = classpath
         .flatMap {
             when {
                 Files.isRegularFile(it) && it.fileName.toString().endsWith(".jar") ->
-                    FileSystems.newFileSystem(it,null).rootDirectories.toList()
+                    FileSystems.newFileSystem(it, null).rootDirectories.toList()
 
                 Files.isDirectory(it) ->
                     listOf(it)
@@ -95,11 +104,11 @@ private fun listAllClasses(classpath: List<Path>) : List<Path> {
 }
 
 
-private fun readClass(clazz: Path) : String? {
+private fun readClass(clazz: Path): String? {
     val reader = ClassReader(Files.readAllBytes(clazz))
 
     var hasAnnotation = false
-    lateinit var configurationClassName : String
+    lateinit var configurationClassName: String
 
     val visitor = object : ClassVisitor(Opcodes.ASM9) {
         override fun visit(

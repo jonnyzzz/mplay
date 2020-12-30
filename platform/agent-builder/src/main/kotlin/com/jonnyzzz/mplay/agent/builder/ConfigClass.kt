@@ -2,10 +2,11 @@ package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Proxy
 import java.lang.reflect.Type
 
-data class ConfigurationClass<T>(
-    val configClass: Class<out MPlayConfiguration<T>>,
+data class ConfigurationClass(
+    val configClass: Class<*>,
 
     /**
      * The class that we use to record (and later play) the
@@ -17,8 +18,52 @@ data class ConfigurationClass<T>(
 ) {
     companion object
 
+    val configuration: MPlayConfiguration<*> by lazy {
+        val instance = run {
+            //case 1 - test if this is a Kotlin object
+            runCatching {
+                configClass.kotlin.objectInstance?.let { return@run it }
+            }
+
+            //case 2 - try to use a constructor
+            runCatching {
+                configClass.getConstructor().newInstance().let { return@run it }
+            }
+
+            error("Failed to create configuration class ${configClass.name}. The class should have default constructor without parameter or be a Kotlin object")
+        }
+
+        Proxy.newProxyInstance(
+            ConfigurationClass::class.java.classLoader,
+            arrayOf(MPlayConfiguration::class.java),
+        ) { _, method, args ->
+            instance::class.java
+                .getMethod(method.name, *method.parameterTypes)
+                .invoke(instance, *args ?: arrayOf())
+        } as MPlayConfiguration<*>
+    }
+
+    /**
+     * This is the set of all base classes of the intercepted class, including
+     * the intercepted type itself. It filters the base classes with respect
+     * to the [MPlayConfiguration.upperLimit].
+     */
+    val allIncludedInterceptedTypeBases : Set<Class<*>> by lazy {
+        val bases = mutableSetOf<Class<*>>()
+
+        val upperLimit = configuration.upperLimit
+
+        var r = interceptedRawType
+        while(r != upperLimit) {
+            bases += r
+            r = r.superclass ?: break
+        }
+
+        bases
+    }
+
     val publicMethods by lazy {
-        interceptedRawType.methods.toList()
+        interceptedRawType.methods.filter { it.declaringClass in allIncludedInterceptedTypeBases }
     }
 
     val methodParameterTypes: List<Type> by lazy {
@@ -31,7 +76,7 @@ data class ConfigurationClass<T>(
 fun ConfigurationClass.Companion.fromConfigClass(
     classpath: ConfigurationClasspath,
     configClazz: Class<*>
-): ConfigurationClass<*> {
+): ConfigurationClass {
     if (!classpath.configType.isAssignableFrom(configClazz)) {
         error("The MPlay configuration ${configClazz.name} must directly implement ${MPlayConfiguration::class.java.name}")
     }
@@ -57,7 +102,7 @@ fun ConfigurationClass.Companion.fromConfigClass(
 
     @Suppress("UNCHECKED_CAST")
     return ConfigurationClass(
-        configClass = configClazz as Class<out MPlayConfiguration<Any>>,
+        configClass = configClazz,
         interceptType = interceptType,
         interceptedRawType = rawType,
     )
