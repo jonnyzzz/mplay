@@ -12,7 +12,15 @@ object Main {
     }
 }
 
-class ExampleService {
+open class SomeWeirdBase {
+    fun skipMe() { }
+}
+
+open class ExampleServiceBase : SomeWeirdBase() {
+    fun yetAnotherMethodToIntercept() { }
+}
+
+class ExampleService  : ExampleServiceBase() {
     fun exampleMethod(s: String, i: Int) {
         // this is the example method that we will patch on the load
         // to attach recording of the events
