@@ -1,5 +1,10 @@
 package com.jonnyzzz.mplay.config
 
+/**
+ * A marker annotation of the class which implements
+ * the [MPlayConfiguration]. The class can be a generic
+ * one if the original type has generic parameters.
+ */
 annotation class MPlayConfig
 
 /**
