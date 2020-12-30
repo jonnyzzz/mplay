@@ -16,14 +16,19 @@ object BuilderMain {
 
         for (config in configuration.configurationClasses) {
             println("  $config")
-            println("    public methods: ${config.publicMethods.size}")
+            println("    public methods:")
             for (m in config.publicMethods) {
                 println("      $m")
             }
-
             println("    parameter types:")
             for (p in config.methodParameterTypes) {
                 println("      $p")
+            }
+            if (config.baseClassesToIntercept.isNotEmpty()) {
+                println("    base classes to make methods non-final:")
+                for (b in config.baseClassesToIntercept) {
+                    println("      ${b.name}")
+                }
             }
         }
     }

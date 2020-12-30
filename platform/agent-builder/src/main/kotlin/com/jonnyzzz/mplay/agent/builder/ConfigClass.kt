@@ -66,6 +66,15 @@ data class ConfigurationClass(
         interceptedRawType.methods.filter { it.declaringClass in allIncludedInterceptedTypeBases }
     }
 
+    /**
+     * Returns list of base classes that would be intercepted
+     * to allow overriding the methods, it is necessary when the main
+     * class will be intercepted to introduce methods logging
+     */
+    val baseClassesToIntercept : Set<Class<*>> by lazy {
+        publicMethods.mapTo(HashSet()) { it.declaringClass } - interceptedRawType
+    }
+
     val methodParameterTypes: List<Type> by lazy {
         publicMethods
             .flatMapTo(HashSet()) { it.genericParameterTypes.toList() }
