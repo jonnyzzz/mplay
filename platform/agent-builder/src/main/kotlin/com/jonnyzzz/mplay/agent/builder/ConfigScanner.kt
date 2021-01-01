@@ -1,23 +1,17 @@
 package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.config.MPlayConfig
-import com.jonnyzzz.mplay.config.MPlayConfiguration
-import org.objectweb.asm.*
 import org.reflections.Reflections
 import java.io.File
 import java.net.URLClassLoader
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.streams.toList
 
 class ConfigurationClasspath(
     val classpath: List<Path>,
 ) {
     val classloader by lazy { loadConfigurationClasses() }
-    val annotationType by lazy { classloader.loadClass(MPlayConfig::class.java.name) }
-    val configType by lazy { classloader.loadClass(MPlayConfiguration::class.java.name) }
     val configurationClasses by lazy { resolveConfigurationClasses() }
 }
 
@@ -40,14 +34,14 @@ private fun ConfigurationClasspath.loadConfigurationClasses(): URLClassLoader {
 private fun ConfigurationClasspath.resolveConfigurationClasses(): List<ConfigurationClass> {
     @Suppress("UNCHECKED_CAST")
     val configClasses = Reflections(classloader)
-        .getTypesAnnotatedWith(annotationType as Class<out Annotation>, false)
+        .getTypesAnnotatedWith(MPlayConfig::class.java, false)
         .filterNotNull()
         .toList()
 
     val result = mutableListOf<ConfigurationClass>()
 
     for (configClazz in configClasses) {
-        result += ConfigurationClass.fromConfigClass(this, configClazz)
+        result += ConfigurationClass.fromConfigClass(configClazz)
     }
     return result
 }

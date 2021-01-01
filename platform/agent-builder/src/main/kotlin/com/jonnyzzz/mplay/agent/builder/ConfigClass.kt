@@ -75,21 +75,21 @@ data class ConfigurationClass(
 }
 
 fun ConfigurationClass.Companion.fromConfigClass(
-    classpath: ConfigurationClasspath,
     configClazz: Class<*>
 ): ConfigurationClass {
-    if (!classpath.configType.isAssignableFrom(configClazz)) {
-        error("The MPlay configuration ${configClazz.name} must directly implement ${MPlayConfiguration::class.java.name}")
+    val configType = MPlayConfiguration::class.java
+
+    if (!configType.isAssignableFrom(configClazz)) {
+        error("The MPlay configuration ${configClazz.name} must directly implement ${configType.name}")
     }
 
     val interceptType = configClazz.genericInterfaces.mapNotNull {
         if (it !is ParameterizedType) return@mapNotNull null
         val rawType = it.rawType as? Class<*> ?: return@mapNotNull null
-        if (rawType != classpath.configType) return@mapNotNull null
+        if (rawType != configType) return@mapNotNull null
         it.actualTypeArguments.single()
     }.singleOrNull() ?: error(
-        "The MPlay configuration ${configClazz.name} must " +
-                "directly implement ${MPlayConfiguration::class.java.name}"
+        "The MPlay configuration ${configClazz.name} must directly implement ${configType.name}"
     )
 
     val rawType = when (interceptType) {
