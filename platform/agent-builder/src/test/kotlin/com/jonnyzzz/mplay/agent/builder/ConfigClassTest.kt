@@ -71,7 +71,7 @@ class ConfigClassTest {
             override val upperLimit: Class<*> = Base::class.java
         }
 
-        val config = ConfigurationClass.fromConfigClass(Configuration::class.java)
+        val config = ConfigurationClass.fromConfigClass<Configuration<*>>()
 
         Assert.assertEquals(ToProxy::class.java, config.interceptedRawType)
         Assert.assertEquals(Configuration::class.java, config.configClass)

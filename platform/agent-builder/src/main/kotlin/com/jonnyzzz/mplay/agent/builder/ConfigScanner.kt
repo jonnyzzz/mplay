@@ -9,14 +9,22 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class ConfigurationClasspath(
-    val classpath: List<Path>,
-) {
-    val classloader by lazy { loadConfigurationClasses() }
-    val configurationClasses by lazy { resolveConfigurationClasses() }
+    val configurationClasses: List<ConfigurationClass>
+)
+
+fun resolveConfigurationFromArgs(args: Array<String>): ConfigurationClasspath {
+    val classpath = resolveAppClassFiles(args)
+    val classloader = loadConfigurationClasses(classpath)
+    val configurationClasses = resolveConfigurationClasses(classloader)
+
+    return ConfigurationClasspath(
+        configurationClasses = configurationClasses,
+    )
 }
 
-private fun ConfigurationClasspath.loadConfigurationClasses(): URLClassLoader {
-    val ourLoader = javaClass.classLoader
+private fun loadConfigurationClasses(classpath: List<Path>): URLClassLoader {
+    class M
+    val ourLoader = M::class.java.classLoader
     val urls = classpath.mapNotNull { runCatching { it.toUri().toURL() }.getOrNull() }.toTypedArray()
     return object : URLClassLoader(urls, null) {
         private val packagePrefix = MPlayConfig::class.java.packageName + "."
@@ -31,7 +39,7 @@ private fun ConfigurationClasspath.loadConfigurationClasses(): URLClassLoader {
     }
 }
 
-private fun ConfigurationClasspath.resolveConfigurationClasses(): List<ConfigurationClass> {
+private fun resolveConfigurationClasses(classloader: ClassLoader): List<ConfigurationClass> {
     @Suppress("UNCHECKED_CAST")
     val configClasses = Reflections(classloader)
         .getTypesAnnotatedWith(MPlayConfig::class.java, false)
@@ -45,10 +53,6 @@ private fun ConfigurationClasspath.resolveConfigurationClasses(): List<Configura
     }
     return result
 }
-
-fun resolveConfiguration(args: Array<String>) = ConfigurationClasspath(
-    classpath = resolveAppClassFiles(args),
-)
 
 private fun resolveAppClassFiles(args: Array<String>): List<Path> {
     val classpathParam = args

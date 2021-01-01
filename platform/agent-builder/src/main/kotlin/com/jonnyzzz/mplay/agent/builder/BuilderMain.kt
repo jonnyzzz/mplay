@@ -11,7 +11,7 @@ object BuilderMain {
         val agentJar = BuilderMain::class.java.getResourceAsStream("/mplay-agent/mplay-agent.jar")
             ?: error("Failed to resolve the agent stub jar from resources")
 
-        val configuration = resolveConfiguration(args)
+        val configuration = resolveConfigurationFromArgs(args)
         println("Selected configuration classes:")
 
         for (config in configuration.configurationClasses) {

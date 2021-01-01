@@ -1,5 +1,6 @@
 package com.jonnyzzz.mplay.agent
 
+import com.jonnyzzz.mplay.agent.config.AgentConfig
 import net.bytebuddy.agent.builder.AgentBuilder
 import net.bytebuddy.description.type.TypeDefinition
 import net.bytebuddy.description.type.TypeDescription
@@ -39,6 +40,8 @@ class MPlayAgentArgs(
     fun typeMatcher() = ElementMatcher<TypeDefinition> { type ->
         !type.isPrimitive && !type.isInterface /*TODO: test type*/
     }
+
+    fun parseAgentConfig() : AgentConfig = TODO()
 }
 
 private fun premainImpl(
@@ -47,16 +50,28 @@ private fun premainImpl(
 ) {
     val interceptor = MPlayInterceptor()
     println("Interceptor instance: $interceptor")
-    AgentBuilder.Default()
-        .type(args.typeMatcher())
+    buildByteBuddyAgent(args.parseAgentConfig()).installOn(instrumentation)
+}
+
+fun buildByteBuddyAgent(config: AgentConfig) : AgentBuilder {
+    val interceptor = MPlayInterceptor()
+
+    // we should prepare configuration classes for each of the types here
+    // we should pass these configuration to interceptors
+
+    val namesToIntercept = config.classesToRecordEvents.map { it.name }.toSortedSet()
+
+    return AgentBuilder.Default()
+        .type(ElementMatcher {
+            it.name in namesToIntercept
+        })
         .transform { builder: DynamicType.Builder<*>,
                      _: TypeDescription,
                      _: ClassLoader,
                      _: JavaModule ->
             builder.method(
+                //TODO: methods should go from configuration (also the way to serualize params too)
                 ElementMatchers.not(ElementMatchers.isDeclaredBy(Object::class.java))
             ).intercept(to(interceptor))
         }
-        .installOn(instrumentation)
 }
-

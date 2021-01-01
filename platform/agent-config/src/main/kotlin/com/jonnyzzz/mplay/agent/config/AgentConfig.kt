@@ -1,17 +1,15 @@
 package com.jonnyzzz.mplay.agent.config
 
-import java.nio.file.Path
-
+/**
+ * TODO: How should we deal with config classpath here?
+ * Is it fine to assume these classes are included into the agent? Or mayby in the app classpath?
+ */
 data class AgentConfig(
-    val classpath: List<Path>,
-    val classesToProcess: List<AgentConfigClassTask>,
+    val classesToRecordEvents: List<InterceptClassTask>,
+    //we also need the set of classes, where methods would be made non-final
 )
 
-data class AgentClassMakeOpenTask(
-    val className: String
-)
-
-class AgentConfigClassTask(
-
+class InterceptClassTask(
+    val name: String
 )
 

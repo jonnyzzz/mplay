@@ -7,6 +7,8 @@ dependencies {
     testImplementation(project(":agent-config"))
     testImplementation(project(":agent-builder"))
     testImplementation(project(":config"))
-    testImplementation("junit:junit")
+    testImplementation("junit:junit:4.12")
+
+
 }
 
