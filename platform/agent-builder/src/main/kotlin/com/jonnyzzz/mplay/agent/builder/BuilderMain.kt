@@ -17,7 +17,7 @@ object BuilderMain {
         for (config in configuration.configurationClasses) {
             println("  $config")
             println("    public methods:")
-            for (m in config.publicMethods) {
+            for (m in config.methodsToIntercept) {
                 println("      $m")
             }
             println("    parameter types:")

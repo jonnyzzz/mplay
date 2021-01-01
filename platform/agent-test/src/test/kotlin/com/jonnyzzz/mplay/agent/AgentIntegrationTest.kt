@@ -5,14 +5,15 @@ import com.jonnyzzz.mplay.agent.builder.fromConfigClass
 import com.jonnyzzz.mplay.agent.builder.toAgentConfig
 import com.jonnyzzz.mplay.agent.builder.toClasspath
 import com.jonnyzzz.mplay.config.MPlayConfiguration
-import net.bytebuddy.agent.builder.AgentBuilder
 import org.junit.Test
 
 class AgentIntegrationTest {
     @Test
     fun testInterceptOpenClass() {
         class TestClass {
-            fun method() {}
+            fun method() {
+                println("Calling the Method of TestClass. ${javaClass.classLoader}")
+            }
         }
 
         class Config : MPlayConfiguration<TestClass>
@@ -20,7 +21,9 @@ class AgentIntegrationTest {
 
         val agentConfig = config.toAgentConfig()
 
-        InstrumentingClassLoader(buildByteBuddyAgent(agentConfig)).apply {
+        val interceptor = buildClassInterceptor(agentConfig)
+
+        InstrumentingClassLoader(interceptor).apply {
             loadClassByName<Config>().getConstructor().newInstance()
 
             val testClazz = loadClassByName<TestClass>()
@@ -31,10 +34,9 @@ class AgentIntegrationTest {
 }
 
 private class InstrumentingClassLoader(
-    interceptor: AgentBuilder,
+    private val interceptor: ClassInterceptor,
     private val realLoader: ClassLoader = InstrumentingClassLoader::class.java.classLoader,
 ) : ClassLoader(null) {
-    private val interceptor = interceptor.makeRaw()
 
     override fun findClass(name: String): Class<*> {
         if (name.startsWith("kotlin.")) {
@@ -46,7 +48,10 @@ private class InstrumentingClassLoader(
             ?: throw ClassNotFoundException("Failed to find class $name at $resource")
 
         val originalBytes = resourceStream.use { it.readBytes() }
-        val classBytes = interceptor.transform(this, name.replace('.', '/'), null, null, originalBytes) ?: originalBytes
+        val classBytes = interceptor.intercept(
+            name,
+            originalBytes,
+        ) ?: originalBytes
 
         if (originalBytes.contentEquals(classBytes)) {
             println("Loading original class $name")

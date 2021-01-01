@@ -54,7 +54,7 @@ data class ConfigurationClass(
         bases
     }
 
-    val publicMethods by lazy {
+    val methodsToIntercept by lazy {
         interceptedRawType.methods.filter { it.declaringClass in allIncludedInterceptedTypeBases }
     }
 
@@ -64,11 +64,11 @@ data class ConfigurationClass(
      * class will be intercepted to introduce methods logging
      */
     val baseClassesToIntercept : Set<Class<*>> by lazy {
-        publicMethods.mapTo(HashSet()) { it.declaringClass } - interceptedRawType
+        methodsToIntercept.mapTo(HashSet()) { it.declaringClass } - interceptedRawType
     }
 
     val methodParameterTypes: List<Type> by lazy {
-        publicMethods
+        methodsToIntercept
             .flatMapTo(HashSet()) { it.genericParameterTypes.toList() }
             .sortedBy { it.typeName }
     }

@@ -59,7 +59,7 @@ fun buildByteBuddyAgent(config: AgentConfig) : AgentBuilder {
     // we should prepare configuration classes for each of the types here
     // we should pass these configuration to interceptors
 
-    val namesToIntercept = config.classesToRecordEvents.map { it.name }.toSortedSet()
+    val namesToIntercept = config.classesToRecordEvents.map { it.classNameToIntercept }.toSortedSet()
 
     return AgentBuilder.Default()
         .type(ElementMatcher {
