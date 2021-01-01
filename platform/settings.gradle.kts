@@ -1,7 +1,8 @@
 rootProject.name = "Method Player Platform"
 
 include("agent")
+include("agent-config")
 include("agent-builder")
-include("config")
-include("core")
+include("agent-test")
 
+include("config")

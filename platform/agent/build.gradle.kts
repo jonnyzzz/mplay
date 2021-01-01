@@ -6,6 +6,8 @@ plugins {
 dependencies {
     implementation("net.bytebuddy:byte-buddy-dep:1.10.19")
     implementation("org.ow2.asm:asm:9.0")
+    implementation(project(":agent-config"))
+
     testImplementation("junit:junit:4.12")
 }
 
