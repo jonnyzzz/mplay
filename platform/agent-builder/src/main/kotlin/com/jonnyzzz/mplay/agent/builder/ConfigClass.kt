@@ -2,7 +2,6 @@ package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Proxy
 import java.lang.reflect.Type
 
 data class ConfigurationClass(
@@ -33,14 +32,7 @@ data class ConfigurationClass(
             error("Failed to create configuration class ${configClass.name}. The class should have default constructor without parameter or be a Kotlin object")
         }
 
-        Proxy.newProxyInstance(
-            ConfigurationClass::class.java.classLoader,
-            arrayOf(MPlayConfiguration::class.java),
-        ) { _, method, args ->
-            instance::class.java
-                .getMethod(method.name, *method.parameterTypes)
-                .invoke(instance, *args ?: arrayOf())
-        } as MPlayConfiguration<*>
+        instance as MPlayConfiguration<*>
     }
 
     /**
