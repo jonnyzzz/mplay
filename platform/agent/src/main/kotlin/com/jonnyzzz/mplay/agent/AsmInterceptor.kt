@@ -38,7 +38,7 @@ private fun interceptClass(
     val writer = ClassWriter(0)
     var visitor : ClassVisitor = writer
     visitor = ClassPatcherNameAssert(clazz, visitor)
-    visitor = ClassPatcherRecorderInit(clazz, visitor)
+    visitor = ClassPatcherRecorderInit(config, clazz, visitor)
     visitor = ClassPatcherMethodCallRecorder(clazz, visitor)
 
     ClassReader(data).accept(visitor, 0)

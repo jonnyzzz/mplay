@@ -5,9 +5,13 @@ package com.jonnyzzz.mplay.agent.config
  * Is it fine to assume these classes are included into the agent? Or mayby in the app classpath?
  */
 data class AgentConfig(
-//    val configClasspath: List<String>,
+    /**
+     * classpath of the configuration classes
+     */
+    val configClasspath: List<String>,
 
     val classesToRecordEvents: List<InterceptClassTask>,
+
     //we also need the set of classes, where methods would be made non-final
 )
 

@@ -20,13 +20,15 @@ fun ConfigurationClass.toClasspath(): ConfigurationClasspath = ConfigurationClas
 
 
 fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
-    return AgentConfig(classesToRecordEvents = this.configurationClasses.map {
-        InterceptClassTask(
-            classNameToIntercept = it.interceptedRawType.name,
-            configClassName = it.interceptedRawType.name,
-            methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) }
-        )
-    })
+    return AgentConfig(
+        configClasspath = listOf(), //TODO
+        classesToRecordEvents = this.configurationClasses.map {
+            InterceptClassTask(
+                classNameToIntercept = it.interceptedRawType.name,
+                configClassName = it.interceptedRawType.name,
+                methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) }
+            )
+        })
 }
 
 fun ConfigurationClass.toAgentConfig(m: Method): InterceptMethodTask {

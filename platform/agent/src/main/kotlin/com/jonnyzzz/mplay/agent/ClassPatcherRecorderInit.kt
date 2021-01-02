@@ -1,5 +1,6 @@
 package com.jonnyzzz.mplay.agent
 
+import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
 import org.objectweb.asm.ClassVisitor
@@ -7,16 +8,30 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.AdviceAdapter
+import java.io.File
+import java.lang.reflect.Modifier
+import kotlin.math.max
+
 
 class ClassPatcherRecorderInit(
+    private val config: AgentConfig,
     private val clazz: InterceptClassTask,
     baseVisitor: ClassVisitor
 ) :  ClassVisitor(Opcodes.ASM9, baseVisitor) {
     lateinit var jvmClassName : String
     val mplayFieldName get() = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
-    val mplayFieldDescriptor = Type.getDescriptor(MPlayRecorder::class.java)
-    val mplayTypeInternalName = Type.getInternalName(MPlayRecorder::class.java)
 
+    private val mplayRecorderType = MPlayRecorder::class.java
+    val mplayFieldDescriptor = Type.getDescriptor(mplayRecorderType)
+    val mplayTypeInternalName = Type.getInternalName(mplayRecorderType)
+    val mplayTypeGetInstancsName = "getInstance"
+    val mplayTypeGetInstancsSignature = run {
+        val method = mplayRecorderType.methods
+            .filter { Modifier.isStatic(it.modifiers) }
+            .filter { it.name == mplayTypeGetInstancsName }
+            .single()
+        Type.getMethodDescriptor(method)
+    }
 
     override fun visit(
         version: Int,
@@ -47,18 +62,25 @@ class ClassPatcherRecorderInit(
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
 
                override fun onMethodEnter() {
-                   //used later for the PUTFIELD instruction
+                   mv.visitLdcInsn(clazz.classNameToIntercept)
+                   mv.visitLdcInsn(clazz.configClassName)
+                   mv.visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
+
+                   mv.visitMethodInsn(
+                       Opcodes.INVOKESTATIC,
+                       mplayTypeInternalName,
+                       mplayTypeGetInstancsName,
+                       mplayTypeGetInstancsSignature,
+                       false
+                   )
+
                    mv.visitVarInsn(ALOAD, 0)
-
-                   mv.visitTypeInsn(Opcodes.NEW, mplayTypeInternalName)
-                   mv.visitInsn(Opcodes.DUP)
-                   mv.visitMethodInsn(Opcodes.INVOKESPECIAL, mplayTypeInternalName, "<init>", "()V", false)
-
+                   mv.visitInsn(Opcodes.SWAP)
                    mv.visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, mplayFieldName, mplayFieldDescriptor)
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-                   super.visitMaxs(maxStack + 2, maxLocals)
+                   super.visitMaxs(max(maxStack, 2 + 3), maxLocals)
                }
            }
         }

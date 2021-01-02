@@ -19,7 +19,10 @@ class MPlayRecorder(
         fun getInstance(
             recordingClassName: String,
             configClassName: String,
-            configClasspath: List<String>,
+            /**
+             * classpath separated with [File.separator]
+             */
+            configClasspath: String,
         ): MPlayRecorder {
             return MPlayRecorder()
         }
