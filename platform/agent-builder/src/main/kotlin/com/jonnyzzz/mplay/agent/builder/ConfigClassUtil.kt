@@ -11,6 +11,10 @@ import java.lang.reflect.Method
 inline fun <reified T : MPlayConfiguration<*>> ConfigurationClass.Companion.fromConfigClass() =
     fromConfigClass(T::class.java)
 
+inline fun <reified T> ConfigurationClass.Companion.fromClass(): ConfigurationClass {
+    val x = object : MPlayConfiguration<T> {}
+    return fromConfigClass(x.javaClass)
+}
 
 fun ConfigurationClass.toClasspath(): ConfigurationClasspath = ConfigurationClasspath(listOf(this))
 
