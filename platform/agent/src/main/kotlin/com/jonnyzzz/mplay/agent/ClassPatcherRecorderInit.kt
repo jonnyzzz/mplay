@@ -12,23 +12,25 @@ import java.io.File
 import java.lang.reflect.Modifier
 import kotlin.math.max
 
+interface ClassPatcherRecorderInitInfo {
+    val mplayFieldName get() = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
+
+    val mplayRecorderType get() = MPlayRecorder::class.java
+    val mplayFieldDescriptor get() = Type.getDescriptor(mplayRecorderType)
+    val mplayTypeInternalName get() = Type.getInternalName(mplayRecorderType)
+}
 
 class ClassPatcherRecorderInit(
     private val config: AgentConfig,
     private val clazz: InterceptClassTask,
     baseVisitor: ClassVisitor
-) :  ClassVisitor(Opcodes.ASM9, baseVisitor) {
-    lateinit var jvmClassName : String
-    val mplayFieldName get() = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
-
-    private val mplayRecorderType = MPlayRecorder::class.java
-    val mplayFieldDescriptor = Type.getDescriptor(mplayRecorderType)
-    val mplayTypeInternalName = Type.getInternalName(mplayRecorderType)
-    val mplayTypeGetInstancsName = "getInstance"
-    val mplayTypeGetInstancsSignature = run {
+) :  ClassVisitor(Opcodes.ASM9, baseVisitor), ClassPatcherRecorderInitInfo {
+    private lateinit var jvmClassName : String
+    private val mplayTypeGetInstanceName = "getInstance"
+    private val mplayTypeGetInstanceSignature = run {
         val method = mplayRecorderType.methods
             .filter { Modifier.isStatic(it.modifiers) }
-            .filter { it.name == mplayTypeGetInstancsName }
+            .filter { it.name == mplayTypeGetInstanceName }
             .single()
         Type.getMethodDescriptor(method)
     }
@@ -60,7 +62,6 @@ class ClassPatcherRecorderInit(
         var methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
         if (name == "<init>") {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
-
                override fun onMethodEnter() {
                    mv.visitLdcInsn(clazz.classNameToIntercept)
                    mv.visitLdcInsn(clazz.configClassName)
@@ -69,8 +70,8 @@ class ClassPatcherRecorderInit(
                    mv.visitMethodInsn(
                        Opcodes.INVOKESTATIC,
                        mplayTypeInternalName,
-                       mplayTypeGetInstancsName,
-                       mplayTypeGetInstancsSignature,
+                       mplayTypeGetInstanceName,
+                       mplayTypeGetInstanceSignature,
                        false
                    )
 
@@ -80,7 +81,7 @@ class ClassPatcherRecorderInit(
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-                   super.visitMaxs(max(maxStack, 2 + 3), maxLocals)
+                   super.visitMaxs(max(maxStack, 3), maxLocals)
                }
            }
         }

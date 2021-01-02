@@ -1,15 +1,21 @@
 package com.jonnyzzz.mplay.agent.runtime
 
+import java.io.File
+import java.net.URL
 
-class MPlayRecorder(
-//    val recordingClassName: String,
-//    val configClassName: String,
-//    val configClasspath: List<String>,
+
+data class MPlayRecorder(
+    val recordingClassName: String,
+    val configClassName: String,
+    val configClasspath: List<URL>,
 ) {
     init {
-        println("MPlayRecorder created")
+        println("MPlayRecorder[$recordingClassName] created")
     }
 
+    fun onMethodEnter(name: String) {
+        println("MPlayRecorder[$recordingClassName] on method: $name")
+    }
 
     companion object {
         /**
@@ -24,7 +30,11 @@ class MPlayRecorder(
              */
             configClasspath: String,
         ): MPlayRecorder {
-            return MPlayRecorder()
+            //we may do caching here if needed
+            return MPlayRecorder(
+                recordingClassName,
+                configClassName,
+                configClasspath.split(File.separator).map { File(it).toURI().toURL() })
         }
     }
 }
