@@ -13,15 +13,20 @@ data class AgentConfig(
 
 class InterceptClassTask(
     /**
-     * Class name in JVM format
+     * Fully Qualified name of the class to record method calls
      */
     val classNameToIntercept: String,
 
     /**
-     * Class name in JVM format
+     * Fully Qualified of the configuration class that implements
+     * [MPlayConfiguration] with the [classNameToIntercept] as the
+     * generic parameter
      */
     val configClassName: String,
 
+    /**
+     * Specifies methods (and metadata) for which the recording is done
+     */
     val methodsToRecord : List<InterceptMethodTask>
 )
 

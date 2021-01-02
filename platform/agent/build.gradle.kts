@@ -8,6 +8,7 @@ dependencies {
     api("org.ow2.asm:asm:9.0")
     api("org.ow2.asm:asm-util:9.0")
     implementation(project(":agent-config"))
+    implementation(project(":agent-runtime"))
 
     testImplementation("junit:junit:4.12")
 }
