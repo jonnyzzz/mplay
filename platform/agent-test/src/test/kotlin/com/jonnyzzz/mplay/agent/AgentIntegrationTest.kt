@@ -1,3 +1,5 @@
+@file:Suppress("unused", "ProtectedInFinal", "UNUSED_PARAMETER")
+
 package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.builder.ConfigurationClass
@@ -9,8 +11,10 @@ import org.junit.Test
 
 class AgentIntegrationTest {
     @Test
-    fun testInterceptOpenClass() {
+    fun testInterceptSimpleClass() {
         class TestClass {
+            private fun method(x: Long) : Int = error("")
+            protected fun method(x: Int) : Int = error("")
             fun method() {
                 println("Calling the Method of TestClass. ${javaClass.classLoader}")
             }
@@ -29,6 +33,31 @@ class AgentIntegrationTest {
             val testClazz = loadClassByName<TestClass>()
             val testObj = testClazz.getConstructor().newInstance()
             testClazz.getMethod((TestClass::method).name).invoke(testObj)
+        }
+    }
+
+    @Test
+    fun testInterceptGenericClass() {
+        class TestClass<R> {
+            fun <Q> method(q: Q) : R? {
+                println("Calling the Method of TestClass. ${javaClass.classLoader}")
+                return null
+            }
+        }
+
+        class Config : MPlayConfiguration<TestClass<*>>
+        val config = ConfigurationClass.fromConfigClass<Config>().toClasspath()
+
+        val agentConfig = config.toAgentConfig()
+
+        val interceptor = buildClassInterceptor(agentConfig)
+
+        InstrumentingClassLoader(interceptor).apply {
+            loadClassByName<Config>().getConstructor().newInstance()
+
+            val testClazz = loadClassByName<TestClass<*>>()
+            val testObj = testClazz.getConstructor().newInstance()
+            testClazz.getMethod("method", Any::class.java).invoke(testObj, "42")
         }
     }
 }

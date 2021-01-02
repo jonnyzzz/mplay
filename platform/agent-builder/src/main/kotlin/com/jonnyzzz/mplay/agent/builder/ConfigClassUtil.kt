@@ -4,6 +4,8 @@ import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
 import com.jonnyzzz.mplay.agent.config.InterceptMethodTask
 import com.jonnyzzz.mplay.config.MPlayConfiguration
+import org.objectweb.asm.Type
+import java.lang.reflect.Method
 
 
 inline fun <reified T : MPlayConfiguration<*>> ConfigurationClass.Companion.fromConfigClass() =
@@ -18,7 +20,14 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
         InterceptClassTask(
             classNameToIntercept = it.interceptedRawType.name,
             configClassName = it.interceptedRawType.name,
-            methodsToIntercept = it.methodsToIntercept.map { InterceptMethodTask(it.name) }
+            methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) }
         )
     })
+}
+
+fun ConfigurationClass.toAgentConfig(m: Method): InterceptMethodTask {
+    return InterceptMethodTask(
+        methodName = m.name,
+        jvmMethodDescriptor = Type.getMethodDescriptor(m)
+    )
 }

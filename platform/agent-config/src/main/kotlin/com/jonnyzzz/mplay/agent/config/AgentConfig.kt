@@ -22,10 +22,11 @@ class InterceptClassTask(
      */
     val configClassName: String,
 
-    val methodsToIntercept : List<InterceptMethodTask>
+    val methodsToRecord : List<InterceptMethodTask>
 )
 
 class InterceptMethodTask(
     val methodName: String,
+    val jvmMethodDescriptor: String
     //here goes signature (for the case of overloads)
 )
