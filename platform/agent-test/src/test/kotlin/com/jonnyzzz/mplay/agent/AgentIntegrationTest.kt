@@ -44,8 +44,8 @@ class AgentIntegrationTest {
     @Test
     fun testInterceptGenericClass() {
         class TestClass<R> {
-            fun <Q> method(q: Q) : R? {
-                println("Calling the Method of TestClass. ${javaClass.classLoader}")
+            fun <Q> method(q: Q, p: Long) : R? {
+                println("Calling the Method of TestClass. ${javaClass.classLoader} $q $p")
                 return null
             }
         }
@@ -57,7 +57,7 @@ class AgentIntegrationTest {
         InstrumentingClassLoader(interceptor).apply {
             val testClazz = loadClassByName<TestClass<*>>()
             val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod("method", Any::class.java).invoke(testObj, "42")
+            testClazz.getMethod("method", Any::class.java, Long::class.java).invoke(testObj, "42", 42L)
         }
     }
 }

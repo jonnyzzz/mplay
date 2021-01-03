@@ -9,6 +9,8 @@ dependencies {
     api("org.ow2.asm:asm-util:9.0")
     implementation(project(":agent-config"))
     implementation(project(":agent-runtime"))
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
 
     testImplementation("junit:junit:4.12")
 }

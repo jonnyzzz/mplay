@@ -6,7 +6,6 @@ import org.objectweb.asm.Type
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-
 inline fun <reified Y> virtualMethod(name: String) = virtualMethod(Y::class.java, name)
 fun virtualMethod(clazz: Class<*>, name: String): MethodCallInfo {
     val candidates = clazz.methods
@@ -44,6 +43,8 @@ class MethodCallInfo(
             isInterface
         )
     }
+
+    override fun toString() = "${owner.simpleName}#${method.name} ${Type.getMethodDescriptor(method)}"
 }
 
 fun MethodVisitor.visitMethodInsn(e: MethodCallInfo) {

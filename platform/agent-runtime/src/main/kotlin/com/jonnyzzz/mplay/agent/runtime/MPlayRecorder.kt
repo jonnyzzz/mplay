@@ -15,15 +15,15 @@ open class MPlayMethodCallRecorder(
     val methodName: String,
     val methodDescriptor: String
 ) {
-    fun writeBoolean(b: Boolean) = this
-    fun writeChar(i: Char) = this
-    fun writeByte(b: Byte) = this
-    fun writeShort(s: Short) = this
-    fun writeInt(i: Int) = this
-    fun writeLong(l: Long) = this
-    fun writeFloat(f: Float) = this
-    fun writeDouble(d: Double) = this
-    fun writeObject(o: Any?) = this
+    fun writeBoolean(b: Boolean) { println("${recorder.recordingClassName}#$methodName boolean $b") }
+    fun writeChar(i: Char) { println("${recorder.recordingClassName}#$methodName char $i") }
+    fun writeByte(b: Byte) { println("${recorder.recordingClassName}#$methodName byte $b") }
+    fun writeShort(s: Short) { println("${recorder.recordingClassName}#$methodName short $s") }
+    fun writeInt(i: Int) { println("${recorder.recordingClassName}#$methodName int $i") }
+    fun writeLong(l: Long) { println("${recorder.recordingClassName}#$methodName long $l") }
+    fun writeFloat(f: Float) { println("${recorder.recordingClassName}#$methodName float $f") }
+    fun writeDouble(d: Double) { println("${recorder.recordingClassName}#$methodName double $d") }
+    fun writeObject(o: Any?) { println("${recorder.recordingClassName}#$methodName object $o") }
 
     /**
      * Writes method completed successfully, assuming the

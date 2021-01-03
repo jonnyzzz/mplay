@@ -1,3 +1,5 @@
+@file:Suppress("KDocUnresolvedReference")
+
 package com.jonnyzzz.mplay.agent.config
 
 /**
@@ -15,7 +17,7 @@ data class AgentConfig(
     //we also need the set of classes, where methods would be made non-final
 )
 
-class InterceptClassTask(
+data class InterceptClassTask(
     /**
      * Fully Qualified name of the class to record method calls
      */
@@ -34,8 +36,7 @@ class InterceptClassTask(
     val methodsToRecord : List<InterceptMethodTask>
 )
 
-class InterceptMethodTask(
+data class InterceptMethodTask(
     val methodName: String,
-    val jvmMethodDescriptor: String
-    //here goes signature (for the case of overloads)
+    val jvmMethodDescriptor: String,
 )

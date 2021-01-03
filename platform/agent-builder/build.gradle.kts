@@ -28,6 +28,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
 
     implementation(project(":agent-config"))
+    implementation(project(":agent-runtime"))
 
     testImplementation("junit:junit:4.12")
 
