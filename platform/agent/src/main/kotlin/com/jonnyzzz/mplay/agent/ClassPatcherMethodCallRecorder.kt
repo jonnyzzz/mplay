@@ -49,13 +49,7 @@ class ClassPatcherMethodCallRecorder(
                     mv.visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, context.mplayFieldName, context.mplayFieldDescriptor)
                     mv.visitLdcInsn(methodToRecord.methodName)
                     mv.visitLdcInsn(methodToRecord.jvmMethodDescriptor)
-                    mv.visitMethodInsn(
-                        Opcodes.INVOKEVIRTUAL,
-                        context.mplayTypeInternalName,
-                        context.mplayRecorderOnMethodEnterMethodName,
-                        context.mplayRecorderOnMethodEnterMethodSignature,
-                        false
-                    )
+                    mv.visitMethodInsn(context.mplayRecorderOnEnter)
                     mv.visitVarInsn(Opcodes.ASTORE, methodRecorderLocalId)
                     //TODO: call the recorder to pass all method parameters
                     super.onMethodEnter()
@@ -64,7 +58,7 @@ class ClassPatcherMethodCallRecorder(
                 override fun onMethodExit(opcode: Int) {
                     //TODO: call the recorder to pass the return/throw parameters if needed
                     mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, context.methodCallRecorderInternalName, "commitWithResult", "()V", false)
+                    mv.visitMethodInsn(context.methodCallCommitWithResult)
                     super.onMethodExit(opcode)
                 }
 

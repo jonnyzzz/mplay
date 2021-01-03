@@ -48,14 +48,7 @@ class ClassPatcherRecorderInit(
                    mv.visitLdcInsn(clazz.classNameToIntercept)
                    mv.visitLdcInsn(clazz.configClassName)
                    mv.visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
-
-                   mv.visitMethodInsn(
-                       Opcodes.INVOKESTATIC,
-                       context.mplayTypeInternalName,
-                       context.mplayTypeGetInstanceName,
-                       context.mplayTypeGetInstanceSignature,
-                       false
-                   )
+                   mv.visitMethodInsn(context.mplayStaticGetInstance)
 
                    mv.visitVarInsn(ALOAD, 0)
                    mv.visitInsn(Opcodes.SWAP)
