@@ -2,51 +2,20 @@ package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 import org.objectweb.asm.commons.AdviceAdapter
 import java.io.File
-import java.lang.reflect.Modifier
 import kotlin.math.max
 
-interface ClassPatcherRecorderInitInfo {
-    val mplayFieldName get() = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
-
-    val mplayRecorderType get() = MPlayRecorder::class.java
-    val mplayFieldDescriptor get() = Type.getDescriptor(mplayRecorderType)
-
-    val mplayTypeInternalName get() = Type.getInternalName(mplayRecorderType)
-
-    val mplayRecorderOnMethodEnterMethodName get() = "onMethodEnter"
-    val mplayRecorderOnMethodEnterMethod get() = mplayRecorderType.methods
-        .filter { it.name == mplayRecorderOnMethodEnterMethodName }
-        .filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
-        .single()
-
-    val mplayRecorderOnMethodEnterMethodSignature get() = Type.getMethodDescriptor(mplayRecorderOnMethodEnterMethod)
-
-    val methodCallRecorderType get() = Type.getType(mplayRecorderOnMethodEnterMethod.returnType)
-    val methodCallRecorderInternalName get() = methodCallRecorderType.internalName
-
-}
-
 class ClassPatcherRecorderInit(
+    private val context: ClassPatcherContext,
     private val config: AgentConfig,
     private val clazz: InterceptClassTask,
     baseVisitor: ClassVisitor
-) :  ClassVisitor(Opcodes.ASM9, baseVisitor), ClassPatcherRecorderInitInfo {
+) :  ClassVisitor(Opcodes.ASM9, baseVisitor) {
     private lateinit var jvmClassName : String
-    private val mplayTypeGetInstanceName = "getInstance"
-    private val mplayTypeGetInstanceSignature = run {
-        val method = mplayRecorderType.methods
-            .filter { Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
-            .filter { it.name == mplayTypeGetInstanceName }
-            .single()
-        Type.getMethodDescriptor(method)
-    }
 
     override fun visit(
         version: Int,
@@ -59,8 +28,8 @@ class ClassPatcherRecorderInit(
         super.visit(version, access, name, signature, superName, interfaces)
         jvmClassName = name
         cv.visitField(Opcodes.ACC_FINAL or Opcodes.ACC_PRIVATE,
-            mplayFieldName,
-            mplayFieldDescriptor,
+            context.mplayFieldName,
+            context.mplayFieldDescriptor,
             null,
             null)
     }
@@ -82,15 +51,15 @@ class ClassPatcherRecorderInit(
 
                    mv.visitMethodInsn(
                        Opcodes.INVOKESTATIC,
-                       mplayTypeInternalName,
-                       mplayTypeGetInstanceName,
-                       mplayTypeGetInstanceSignature,
+                       context.mplayTypeInternalName,
+                       context.mplayTypeGetInstanceName,
+                       context.mplayTypeGetInstanceSignature,
                        false
                    )
 
                    mv.visitVarInsn(ALOAD, 0)
                    mv.visitInsn(Opcodes.SWAP)
-                   mv.visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, mplayFieldName, mplayFieldDescriptor)
+                   mv.visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {

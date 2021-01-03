@@ -7,7 +7,7 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.AdviceAdapter
 
 class ClassPatcherMethodCallRecorder(
-    val recorderInfo: ClassPatcherRecorderInitInfo,
+    val context: ClassPatcherContext,
     private val clazz: InterceptClassTask,
     baseVisitor: ClassVisitor
 ) :  ClassVisitor(Opcodes.ASM9, baseVisitor) {
@@ -43,17 +43,17 @@ class ClassPatcherMethodCallRecorder(
             methodVisitor = object : AdviceAdapter(ASM9, methodVisitor, access, name, descriptor) {
                 var methodRecorderLocalId: Int = -1
                 override fun onMethodEnter() {
-                    methodRecorderLocalId = newLocal(recorderInfo.methodCallRecorderType)
+                    methodRecorderLocalId = newLocal(context.methodCallRecorderType)
 
                     mv.visitVarInsn(Opcodes.ALOAD, 0)
-                    mv.visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, recorderInfo.mplayFieldName, recorderInfo.mplayFieldDescriptor)
+                    mv.visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, context.mplayFieldName, context.mplayFieldDescriptor)
                     mv.visitLdcInsn(methodToRecord.methodName)
                     mv.visitLdcInsn(methodToRecord.jvmMethodDescriptor)
                     mv.visitMethodInsn(
                         Opcodes.INVOKEVIRTUAL,
-                        recorderInfo.mplayTypeInternalName,
-                        recorderInfo.mplayRecorderOnMethodEnterMethodName,
-                        recorderInfo.mplayRecorderOnMethodEnterMethodSignature,
+                        context.mplayTypeInternalName,
+                        context.mplayRecorderOnMethodEnterMethodName,
+                        context.mplayRecorderOnMethodEnterMethodSignature,
                         false
                     )
                     mv.visitVarInsn(Opcodes.ASTORE, methodRecorderLocalId)
@@ -64,7 +64,7 @@ class ClassPatcherMethodCallRecorder(
                 override fun onMethodExit(opcode: Int) {
                     //TODO: call the recorder to pass the return/throw parameters if needed
                     mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, recorderInfo.methodCallRecorderInternalName, "commitWithResult", "()V", false)
+                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, context.methodCallRecorderInternalName, "commitWithResult", "()V", false)
                     super.onMethodExit(opcode)
                 }
 

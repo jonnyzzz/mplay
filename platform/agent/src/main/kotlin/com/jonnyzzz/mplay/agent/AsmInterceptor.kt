@@ -36,12 +36,11 @@ private fun interceptClass(
     data: ByteArray
 ): ByteArray {
     val writer = ClassWriter(0)
+    val context = ClassPatcherContext()
     var visitor : ClassVisitor = writer
     visitor = ClassPatcherNameAssert(clazz, visitor)
-    val recorderInit = ClassPatcherRecorderInit(config, clazz, visitor)
-    visitor = recorderInit
-    visitor = ClassPatcherMethodCallRecorder(recorderInit, clazz, visitor)
-
+    visitor = ClassPatcherRecorderInit(context, config, clazz, visitor)
+    visitor = ClassPatcherMethodCallRecorder(context, clazz, visitor)
     ClassReader(data).accept(visitor, 0)
     return writer.toByteArray()
 }
