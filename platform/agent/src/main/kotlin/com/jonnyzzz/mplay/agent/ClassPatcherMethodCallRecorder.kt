@@ -41,47 +41,39 @@ class ClassPatcherMethodCallRecorder(
             println("Intercepting method $name with $signature to record calls")
 
             methodVisitor = object : AdviceAdapter(ASM9, methodVisitor, access, name, descriptor) {
+                var methodRecorderLocalId: Int = -1
                 override fun onMethodEnter() {
+                    methodRecorderLocalId = newLocal(recorderInfo.methodCallRecorderType)
 
                     mv.visitVarInsn(Opcodes.ALOAD, 0)
                     mv.visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, recorderInfo.mplayFieldName, recorderInfo.mplayFieldDescriptor)
-                    mv.visitLdcInsn(name)
-                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, recorderInfo.mplayTypeInternalName, "onMethodEnter", "(Ljava/lang/String;)V", false)
-
-                    mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-                    mv.visitLdcInsn("Instrumented method enter: $name -- $signature -- $descriptor")
+                    mv.visitLdcInsn(methodToRecord.methodName)
+                    mv.visitLdcInsn(methodToRecord.jvmMethodDescriptor)
                     mv.visitMethodInsn(
-                        INVOKEVIRTUAL,
-                        "java/io/PrintStream",
-                        "println",
-                        "(Ljava/lang/String;)V",
+                        Opcodes.INVOKEVIRTUAL,
+                        recorderInfo.mplayTypeInternalName,
+                        recorderInfo.mplayRecorderOnMethodEnterMethodName,
+                        recorderInfo.mplayRecorderOnMethodEnterMethodSignature,
                         false
                     )
-
+                    mv.visitVarInsn(Opcodes.ASTORE, methodRecorderLocalId)
+                    //TODO: call the recorder to pass all method parameters
                     super.onMethodEnter()
                 }
 
                 override fun onMethodExit(opcode: Int) {
-                    mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-                    mv.visitLdcInsn("Instrumented method exit: code: $opcode - $name -- $signature -- $descriptor")
-                    mv.visitMethodInsn(
-                        INVOKEVIRTUAL,
-                        "java/io/PrintStream",
-                        "println",
-                        "(Ljava/lang/String;)V",
-                        false
-                    )
-
+                    //TODO: call the recorder to pass the return/throw parameters if needed
+                    mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
+                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, recorderInfo.methodCallRecorderInternalName, "commitWithResult", "()V", false)
                     super.onMethodExit(opcode)
                 }
 
                 override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-                    super.visitMaxs(maxStack + 2, maxLocals)
+                    super.visitMaxs(maxStack + 3, maxLocals)
                 }
             }
         }
 
         return methodVisitor
     }
-
 }

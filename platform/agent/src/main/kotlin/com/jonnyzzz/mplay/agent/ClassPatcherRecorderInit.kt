@@ -17,7 +17,20 @@ interface ClassPatcherRecorderInitInfo {
 
     val mplayRecorderType get() = MPlayRecorder::class.java
     val mplayFieldDescriptor get() = Type.getDescriptor(mplayRecorderType)
+
     val mplayTypeInternalName get() = Type.getInternalName(mplayRecorderType)
+
+    val mplayRecorderOnMethodEnterMethodName get() = "onMethodEnter"
+    val mplayRecorderOnMethodEnterMethod get() = mplayRecorderType.methods
+        .filter { it.name == mplayRecorderOnMethodEnterMethodName }
+        .filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
+        .single()
+
+    val mplayRecorderOnMethodEnterMethodSignature get() = Type.getMethodDescriptor(mplayRecorderOnMethodEnterMethod)
+
+    val methodCallRecorderType get() = Type.getType(mplayRecorderOnMethodEnterMethod.returnType)
+    val methodCallRecorderInternalName get() = methodCallRecorderType.internalName
+
 }
 
 class ClassPatcherRecorderInit(
@@ -29,7 +42,7 @@ class ClassPatcherRecorderInit(
     private val mplayTypeGetInstanceName = "getInstance"
     private val mplayTypeGetInstanceSignature = run {
         val method = mplayRecorderType.methods
-            .filter { Modifier.isStatic(it.modifiers) }
+            .filter { Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
             .filter { it.name == mplayTypeGetInstanceName }
             .single()
         Type.getMethodDescriptor(method)
