@@ -4,6 +4,7 @@ import com.jonnyzzz.mplay.agent.config.*
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import org.objectweb.asm.Type
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 
 inline fun <reified T : MPlayConfiguration<*>> ConfigurationClass.Companion.fromConfigClass() =
@@ -54,6 +55,7 @@ fun ConfigurationClass.toInterceptMethodTask(m: Method): InterceptMethodTask {
 fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, ImplementMethodTask>? {
     val declaringType = m.declaringClass
     if (declaringType == interceptedRawType) return null
+    if (!Modifier.isFinal(m.modifiers)) return null
 
     return declaringType to ImplementMethodTask(
         methodRef = m.toMethodInfo()

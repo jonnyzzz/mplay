@@ -36,6 +36,30 @@ class AgentConfigMethodTest {
     }
 
     @Test
+    fun testBaseClassOpenMethod() {
+        open class Base {
+            open fun baseMethod() {}
+        }
+        class Inh : Base()
+
+        val config = ConfigurationClass.fromClass<Inh>()
+        Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
+
+        val method: Method = config.methodsToIntercept.single()
+        val agentConfig = config.toInterceptMethodTask(method)
+
+        val ref = MethodRef("baseMethod", "()V")
+        Assert.assertEquals(ref, agentConfig.methodRef)
+
+        val baseConfig = config.toImplementMethodTask(method)
+        Assert.assertNull(baseConfig)
+
+        val agent = ConfigurationClasspath(listOf(config)).toAgentConfig()
+        Assert.assertEquals(1, agent.classesToRecordEvents.size)
+        Assert.assertEquals(0, agent.classesToOpenMethods.size)
+    }
+
+    @Test
     fun testGenericSignature() {
         class ToProxy<R, Q> {
             fun m(r: R): Q = error("should not be called")
@@ -88,5 +112,4 @@ class AgentConfigMethodTest {
         Assert.assertEquals("m", agentConfig.methodRef.methodName)
         Assert.assertEquals("(Ljava/lang/String;)J", agentConfig.methodRef.jvmMethodDescriptor)
     }
-
 }
