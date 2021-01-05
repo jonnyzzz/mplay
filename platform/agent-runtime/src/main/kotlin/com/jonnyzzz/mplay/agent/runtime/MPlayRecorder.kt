@@ -15,23 +15,37 @@ open class MPlayMethodCallRecorder(
     val methodName: String,
     val methodDescriptor: String
 ) {
-    fun writeBoolean(b: Boolean) { println("${recorder.recordingClassName}#$methodName boolean $b") }
-    fun writeChar(i: Char) { println("${recorder.recordingClassName}#$methodName char $i") }
-    fun writeByte(b: Byte) { println("${recorder.recordingClassName}#$methodName byte $b") }
-    fun writeShort(s: Short) { println("${recorder.recordingClassName}#$methodName short $s") }
-    fun writeInt(i: Int) { println("${recorder.recordingClassName}#$methodName int $i") }
-    fun writeLong(l: Long) { println("${recorder.recordingClassName}#$methodName long $l") }
-    fun writeFloat(f: Float) { println("${recorder.recordingClassName}#$methodName float $f") }
-    fun writeDouble(d: Double) { println("${recorder.recordingClassName}#$methodName double $d") }
-    fun writeObject(o: Any?) { println("${recorder.recordingClassName}#$methodName object $o") }
+    /**
+     * Each of the `visit*` methods is used from the generated
+     * bytecode to send and update every method arguments.
+     * The default implementation returns the same value back,
+     * but there are scenarios where it would make sense to
+     * return a different value for a callback parameters
+     */
+    open fun visitBoolean(v: Boolean): Boolean = v.apply { println("${recorder.recordingClassName}#$methodName boolean $v") }
+    open fun visitChar(v: Char): Char = v.apply { println("${recorder.recordingClassName}#$methodName char $v") }
+    open fun visitByte(v: Byte): Byte = v.apply { println("${recorder.recordingClassName}#$methodName byte $v") }
+    open fun visitShort(v: Short): Short = v.apply { println("${recorder.recordingClassName}#$methodName short $v") }
+    open fun visitInt(v: Int): Int = v.apply { println("${recorder.recordingClassName}#$methodName int $v") }
+    open fun visitLong(v: Long): Long = v.apply { println("${recorder.recordingClassName}#$methodName long $v") }
+    open fun visitFloat(v: Float): Float = v.apply { println("${recorder.recordingClassName}#$methodName float $v") }
+    open fun visitDouble(v: Double): Double = v.apply { println("${recorder.recordingClassName}#$methodName double $v") }
+    open fun visitObject(v: Any?): Any? = v.apply { println("${recorder.recordingClassName}#$methodName object $v") }
+
+    /**
+     * An additional callback to notify all method call parameters were reported
+     */
+    open fun visitParametersComplete()  {
+        println("${recorder.recordingClassName}#$methodName parameters visited")
+    }
 
     /**
      * Writes method completed successfully, assuming the
-     * method result was send via the last call with a `write*` method.
+     * method result was send via the last call with a `visit*` method.
      *
      * The write must not be called if the method result is [Void]
      */
-    fun commitWithResult() {
+    open fun commitWithResult() {
         println("commitWithResult")
     }
 
@@ -39,7 +53,7 @@ open class MPlayMethodCallRecorder(
      * Writes method completed with an exception, sending the
      * exception as the method parameter
      */
-    fun commitWithException(exception: Throwable) {
+    open fun commitWithException(exception: Throwable) {
         println("commitWithException")
     }
 }

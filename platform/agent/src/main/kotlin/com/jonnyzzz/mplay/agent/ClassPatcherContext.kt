@@ -10,25 +10,26 @@ class ClassPatcherContext {
     val mplayRecorderType = MPlayRecorder::class.java
     val mplayFieldDescriptor = Type.getDescriptor(mplayRecorderType)
 
-    val mplayStaticGetInstance = staticMethod<MPlayRecorder>(MPlayRecorder.Companion::getInstance.name)
-    val mplayRecorderOnEnter = virtualMethod<MPlayRecorder>(MPlayRecorder::onMethodEnter.name)
+    val mplayStaticGetInstance = staticMethod<MPlayRecorder>(MPlayRecorder.Companion::getInstance)
+    val mplayRecorderOnEnter = virtualMethod<MPlayRecorder>(MPlayRecorder::onMethodEnter)
 
     private val typeSortToWriteMethods = mapOf(
-        Type.BOOLEAN to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeBoolean.name),
-        Type.CHAR    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeChar.name),
-        Type.BYTE    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeByte.name),
-        Type.SHORT   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeShort.name),
-        Type.INT     to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeInt.name),
-        Type.FLOAT   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeFloat.name),
-        Type.LONG    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeLong.name),
-        Type.DOUBLE  to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeDouble.name),
-        Type.ARRAY   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeObject.name),
-        Type.OBJECT  to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::writeObject.name),
+        Type.BOOLEAN to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitBoolean),
+        Type.CHAR    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitChar),
+        Type.BYTE    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitByte),
+        Type.SHORT   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitShort),
+        Type.INT     to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitInt),
+        Type.FLOAT   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitFloat),
+        Type.LONG    to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitLong),
+        Type.DOUBLE  to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitDouble),
+        Type.ARRAY   to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitObject),
+        Type.OBJECT  to  virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitObject),
     )
 
     fun mplayWriteMethod(type: Type): MethodCallInfo = typeSortToWriteMethods[type.sort] ?: error("Unexpected type: $type")
 
     val methodCallRecorderType = Type.getType(mplayRecorderOnEnter.returnType)
-    val methodCallCommitWithResult = virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::commitWithResult.name)
-    val methodCallCommitWithException = virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::commitWithException.name)
+    val methodCallParametersComplete = virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitParametersComplete)
+    val methodCallCommitWithResult = virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::commitWithResult)
+    val methodCallCommitWithException = virtualMethod<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::commitWithException)
 }

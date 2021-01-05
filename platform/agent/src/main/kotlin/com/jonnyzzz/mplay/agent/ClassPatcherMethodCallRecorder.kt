@@ -58,7 +58,10 @@ class ClassPatcherMethodCallRecorder(
                         dup()
                         loadArg(i)
                         visitMethodInsn(context.mplayWriteMethod(argumentType))
+                        storeArg(i)
                     }
+                    dup()
+                    visitMethodInsn(context.methodCallParametersComplete)
                     mv.visitVarInsn(Opcodes.ASTORE, methodRecorderLocalId)
                 }
 
