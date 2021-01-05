@@ -46,7 +46,7 @@ open class MPlayMethodCallRecorder(
      * The write must not be called if the method result is [Void]
      */
     open fun commitWithResult() {
-        println("commitWithResult")
+        println("${recorder.recordingClassName}#$methodName commitWithResult")
     }
 
     /**
@@ -54,7 +54,7 @@ open class MPlayMethodCallRecorder(
      * exception as the method parameter
      */
     open fun commitWithException(exception: Throwable) {
-        println("commitWithException")
+        println("${recorder.recordingClassName}#$methodName commitWithException: $exception")
     }
 }
 
