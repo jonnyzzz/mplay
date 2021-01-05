@@ -2,129 +2,110 @@
 
 package com.jonnyzzz.mplay.agent
 
-import com.jonnyzzz.mplay.agent.builder.*
+import com.jonnyzzz.mplay.agent.builder.ConfigurationClass
+import com.jonnyzzz.mplay.agent.builder.fromClass
+import com.jonnyzzz.mplay.agent.builder.toAgentConfig
+import com.jonnyzzz.mplay.agent.builder.toClasspath
 import org.junit.Test
-import java.lang.RuntimeException
-import java.lang.reflect.InvocationTargetException
+import java.util.function.Consumer
 
 class AgentIntegrationTest {
     @Test
     fun testInterceptSimpleClass() {
         class TestClass {
-            private fun method(x: Long) : Int = error("")
-            protected fun method(x: Int) : Int = error("")
+            private fun method(x: Long): Int = error("")
+            protected fun method(x: Int): Int = error("")
             fun method() {
                 println("Calling the Method of TestClass. ${javaClass.classLoader}")
             }
         }
 
-        val config = ConfigurationClass.fromClass<TestClass>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClass>()
-            val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod((TestClass::method).name).invoke(testObj)
+        doInterceptTest<TestClass> {
+            method()
         }
     }
 
     @Test
     fun testInterceptSimpleClassWithLongReturnValue() {
         class TestClass {
-            private fun method(x: Long) : Int = error("")
-            protected fun method(x: Int) : Int = error("")
-            fun method(d: Double) : Long {
+            private fun method(x: Long): Int = error("")
+            protected fun method(x: Int): Int = error("")
+            fun method(d: Double): Long {
                 println("Calling the Method of TestClass. ${javaClass.classLoader}")
                 return (d * 12345).toLong()
             }
         }
 
-        val config = ConfigurationClass.fromClass<TestClass>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClass>()
-            val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod((TestClass::method).name, Double::class.java).invoke(testObj, 123.0)
+        doInterceptTest<TestClass> {
+            method(123.0)
         }
     }
 
     @Test
     fun testInterceptSimpleClassWithThrow() {
         class TestClass {
-            private fun method(x: Long) : Int = error("")
-            protected fun method(x: Int) : Int = error("")
+            private fun method(x: Long): Int = error("")
+            protected fun method(x: Int): Int = error("")
             fun method() {
                 println("Calling the Method of TestClass. ${javaClass.classLoader}")
                 throw RuntimeException("this is test")
             }
         }
 
-        val config = ConfigurationClass.fromClass<TestClass>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClass>()
-            val testObj = testClazz.getConstructor().newInstance()
+        doInterceptTest<TestClass> {
             try {
-                testClazz.getMethod((TestClass::method).name).invoke(testObj)
-            } catch (t: InvocationTargetException) {
-                if (t.targetException.message != "this is test") throw t.targetException
+                method()
+            } catch (t: RuntimeException) {
+                if (t.message != "this is test") throw t
             }
         }
     }
 
     @Test
     fun testInterceptClassWithStaticConstructor() {
-        val config = ConfigurationClass.fromClass<TestClassWithStaticInit>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClassWithStaticInit>()
-            val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod("method").invoke(testObj)
+        doInterceptTest<TestClassWithStaticInit> {
+            method()
         }
     }
 
     @Test
     fun testInterceptClassWithFinalArg() {
-        val config = ConfigurationClass.fromClass<TestClassWithFinalArg>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClassWithFinalArg>()
-            val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod("method", Byte::class.java).invoke(testObj, 5.toByte())
+        doInterceptTest<TestClassWithFinalArg> {
+            method(5)
         }
     }
 
     @Test
     fun testInterceptGenericClass() {
         class TestClass<R> {
-            fun <Q> method(q: Q, p: Long) : R? {
+            fun <Q> method(q: Q, p: Long): R? {
                 println("Calling the Method of TestClass. ${javaClass.classLoader} $q $p")
                 return null
             }
         }
 
-        val config = ConfigurationClass.fromClass<TestClass<*>>().toClasspath()
-        val agentConfig = config.toAgentConfig()
-        val interceptor = buildClassInterceptor(agentConfig)
-
-        InstrumentingClassLoader(interceptor).apply {
-            val testClazz = loadClassByName<TestClass<*>>()
-            val testObj = testClazz.getConstructor().newInstance()
-            testClazz.getMethod("method", Any::class.java, Long::class.java).invoke(testObj, "42", 42L)
+        doInterceptTest<TestClass<*>> {
+            method("42", 42L)
         }
     }
-
-
 }
 
+
+inline fun <reified T> doInterceptTest(crossinline testAction: T.() -> Unit) {
+    //the trick is that there will be an actual class, so we could re-load it
+    //from the different classloader
+    val scope = Consumer<T> { t -> t.testAction() }
+
+    val config = ConfigurationClass.fromClass<T>().toClasspath()
+    val agentConfig = config.toAgentConfig()
+    val interceptor = buildClassInterceptor(agentConfig)
+
+    InstrumentingClassLoader(interceptor).apply {
+        val testClazz = loadClassByName<T>()
+        val testObj = testClazz.getConstructor().newInstance()
+
+        @Suppress("UNCHECKED_CAST")
+        val scopeCopy = loadClass(scope.javaClass.name).getConstructor().newInstance() as Consumer<Any?>
+        scopeCopy.accept(testClazz.cast(testObj))
+    }
+}
