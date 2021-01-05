@@ -26,7 +26,8 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
             InterceptClassTask(
                 classNameToIntercept = it.interceptedRawType.name,
                 configClassName = it.interceptedRawType.name,
-                methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) }
+                methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) },
+                methodsToImplement = listOf() //TODO
             )
         })
 }
