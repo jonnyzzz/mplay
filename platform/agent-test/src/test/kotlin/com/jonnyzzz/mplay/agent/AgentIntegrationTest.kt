@@ -88,6 +88,8 @@ class AgentIntegrationTest {
             method("42", 42L)
         }
     }
+
+    //TODO: test bridge/synthetic methods are not included (e.g. onces from Generic specialization)
 }
 
 
