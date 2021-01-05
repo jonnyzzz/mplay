@@ -1,6 +1,7 @@
 package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
+import com.jonnyzzz.mplay.agent.config.MethodRef
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -29,14 +30,14 @@ class ClassPatcherMethodCallRecorder(
     override fun visitMethod(
         access: Int,
         name: String,
-        descriptor: String?,
+        descriptor: String,
         signature: String?,
         exceptions: Array<out String>?
     ): MethodVisitor? {
         var methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions) ?: return null
 
         val methodToRecord = clazz.methodsToRecord
-            .firstOrNull { it.methodName == name && it.jvmMethodDescriptor == descriptor }
+            .firstOrNull { it.methodRef == MethodRef(name, descriptor) }?.methodRef
 
         if (methodToRecord != null) {
             println("Intercepting method $name with $signature to record calls")

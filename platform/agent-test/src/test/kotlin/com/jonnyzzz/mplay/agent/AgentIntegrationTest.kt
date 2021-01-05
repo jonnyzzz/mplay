@@ -26,6 +26,25 @@ class AgentIntegrationTest {
     }
 
     @Test
+    fun testInterceptBaseMethods() {
+        open class Base {
+            fun baseMethod() {
+                println("Calling the baseMethod of TestClass. ${javaClass.classLoader}")
+            }
+        }
+
+        class TestClass : Base() {
+            fun method() {
+                println("Calling the method of TestClass. ${javaClass.classLoader}")
+            }
+        }
+
+        doInterceptTest<TestClass> {
+            baseMethod()
+        }
+    }
+
+    @Test
     fun testInterceptSimpleClassWithLongReturnValue() {
         class TestClass {
             private fun method(x: Long): Int = error("")

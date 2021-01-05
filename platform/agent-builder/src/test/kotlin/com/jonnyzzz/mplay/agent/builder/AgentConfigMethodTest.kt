@@ -2,12 +2,39 @@
 
 package com.jonnyzzz.mplay.agent.builder
 
+import com.jonnyzzz.mplay.agent.config.MethodRef
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import org.junit.Assert
 import org.junit.Test
 import java.lang.reflect.Method
 
 class AgentConfigMethodTest {
+
+    @Test
+    fun testBaseClassMethod() {
+        open class Base {
+            fun baseMethod() {}
+        }
+        class Inh : Base()
+
+        val config = ConfigurationClass.fromClass<Inh>()
+        Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
+
+        val method: Method = config.methodsToIntercept.single()
+        val agentConfig = config.toInterceptMethodTask(method)
+
+        val ref = MethodRef("baseMethod", "()V")
+        Assert.assertEquals(ref, agentConfig.methodRef)
+
+        val baseConfig = config.toImplementMethodTask(method)
+        Assert.assertEquals(ref, baseConfig?.second?.methodRef)
+
+        val agent = ConfigurationClasspath(listOf(config)).toAgentConfig()
+        Assert.assertEquals(listOf(Base::class.java.name), agent.classesToOpenMethods.map { it.classNameToIntercept })
+        Assert.assertEquals(1, agent.classesToRecordEvents.size)
+        Assert.assertEquals(1, agent.classesToOpenMethods.size)
+    }
+
     @Test
     fun testGenericSignature() {
         class ToProxy<R, Q> {
@@ -20,10 +47,10 @@ class AgentConfigMethodTest {
         Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
 
         val method: Method = config.methodsToIntercept.single()
-        val agentConfig = config.toAgentConfig(method)
+        val agentConfig = config.toInterceptMethodTask(method)
 
-        Assert.assertEquals("m", agentConfig.methodName)
-        Assert.assertEquals("(Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.jvmMethodDescriptor)
+        Assert.assertEquals("m", agentConfig.methodRef.methodName)
+        Assert.assertEquals("(Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.jvmMethodDescriptor)
     }
 
     @Test
@@ -38,10 +65,10 @@ class AgentConfigMethodTest {
         Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
 
         val method: Method = config.methodsToIntercept.single()
-        val agentConfig = config.toAgentConfig(method)
+        val agentConfig = config.toInterceptMethodTask(method)
 
-        Assert.assertEquals("m", agentConfig.methodName)
-        Assert.assertEquals("(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.jvmMethodDescriptor)
+        Assert.assertEquals("m", agentConfig.methodRef.methodName)
+        Assert.assertEquals("(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.jvmMethodDescriptor)
     }
 
     @Test
@@ -56,10 +83,10 @@ class AgentConfigMethodTest {
         Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
 
         val method: Method = config.methodsToIntercept.single()
-        val agentConfig = config.toAgentConfig(method)
+        val agentConfig = config.toInterceptMethodTask(method)
 
-        Assert.assertEquals("m", agentConfig.methodName)
-        Assert.assertEquals("(Ljava/lang/String;)J", agentConfig.jvmMethodDescriptor)
+        Assert.assertEquals("m", agentConfig.methodRef.methodName)
+        Assert.assertEquals("(Ljava/lang/String;)J", agentConfig.methodRef.jvmMethodDescriptor)
     }
 
 }

@@ -14,7 +14,16 @@ data class AgentConfig(
 
     val classesToRecordEvents: List<InterceptClassTask>,
 
-    //we also need the set of classes, where methods would be made non-final
+    val classesToOpenMethods: List<OpenClassMethodsTask>,
+)
+
+data class OpenClassMethodsTask(
+    /**
+     * Fully Qualified name of the class to record method calls
+     */
+    val classNameToIntercept: String,
+
+    val methodsToOpen: List<ImplementMethodTask>
 )
 
 data class InterceptClassTask(
@@ -34,29 +43,17 @@ data class InterceptClassTask(
      * Specifies methods (and metadata) for which the recording is done
      */
     val methodsToRecord : List<InterceptMethodTask>,
+)
 
-    /**
-     * Specifies the list of methods from base classes which we need
-     * to open in the base classes and implement in the current the
-     * [classNameToIntercept] in order to inject methods recording
-     */
-    val methodsToImplement: List<ImplementMethodTask>,
+data class MethodRef(
+    val methodName: String,
+    val jvmMethodDescriptor: String,
 )
 
 data class InterceptMethodTask(
-    val methodName: String,
-    val jvmMethodDescriptor: String,
+    val methodRef: MethodRef
 )
 
 data class ImplementMethodTask(
-    /**
-     * The fully qualified name of the closes in the
-     * hierarchy from the
-     * [InterceptClassTask.classNameToIntercept]
-     * class which declared the method
-     */
-    val declaringClassName : String,
-
-    val methodName: String,
-    val jvmMethodDescriptor: String,
+    val methodRef: MethodRef,
 )

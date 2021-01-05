@@ -1,8 +1,6 @@
 package com.jonnyzzz.mplay.agent.builder
 
-import com.jonnyzzz.mplay.agent.config.AgentConfig
-import com.jonnyzzz.mplay.agent.config.InterceptClassTask
-import com.jonnyzzz.mplay.agent.config.InterceptMethodTask
+import com.jonnyzzz.mplay.agent.config.*
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import org.objectweb.asm.Type
 import java.lang.reflect.Method
@@ -20,21 +18,44 @@ fun ConfigurationClass.toClasspath(): ConfigurationClasspath = ConfigurationClas
 
 
 fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
+    val methodsToImplement = this.configurationClasses
+        .flatMap { clazz ->
+            clazz.methodsToIntercept.mapNotNull {
+                clazz.toImplementMethodTask(it)
+            }
+        }
+        .groupBy({ (clazz, _) -> clazz.name }, { (_, task) -> task })
+        .map { (clazz, methods) ->
+            OpenClassMethodsTask(clazz, methods)
+        }
+
+    val methodsToRecord = this.configurationClasses.map { clazz ->
+        InterceptClassTask(
+            classNameToIntercept = clazz.interceptedRawType.name,
+            configClassName = clazz.interceptedRawType.name,
+            methodsToRecord = clazz.methodsToIntercept.map { m -> clazz.toInterceptMethodTask(m) },
+        )
+    }
     return AgentConfig(
         configClasspath = listOf(), //TODO
-        classesToRecordEvents = this.configurationClasses.map {
-            InterceptClassTask(
-                classNameToIntercept = it.interceptedRawType.name,
-                configClassName = it.interceptedRawType.name,
-                methodsToRecord = it.methodsToIntercept.map { m -> it.toAgentConfig(m) },
-                methodsToImplement = listOf() //TODO
-            )
-        })
+        classesToOpenMethods = methodsToImplement,
+        classesToRecordEvents = methodsToRecord,
+    )
 }
 
-fun ConfigurationClass.toAgentConfig(m: Method): InterceptMethodTask {
+private fun Method.toMethodInfo() = MethodRef(name, Type.getMethodDescriptor(this))
+
+fun ConfigurationClass.toInterceptMethodTask(m: Method): InterceptMethodTask {
     return InterceptMethodTask(
-        methodName = m.name,
-        jvmMethodDescriptor = Type.getMethodDescriptor(m)
+        methodRef = m.toMethodInfo()
+    )
+}
+
+fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, ImplementMethodTask>? {
+    val declaringType = m.declaringClass
+    if (declaringType == interceptedRawType) return null
+
+    return declaringType to ImplementMethodTask(
+        methodRef = m.toMethodInfo()
     )
 }
