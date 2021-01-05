@@ -45,18 +45,24 @@ class ClassPatcherRecorderInit(
         if (name == "<init>") {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
-                   mv.visitLdcInsn(clazz.classNameToIntercept)
-                   mv.visitLdcInsn(clazz.configClassName)
-                   mv.visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
-                   mv.visitMethodInsn(context.mplayStaticGetInstance)
+                   loadThis() //it will be used later to set the field instance
+                   dup()
+                   visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false)
+                   visitLdcInsn(clazz.classNameToIntercept)
+                   visitLdcInsn(clazz.configClassName)
+                   visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
 
-                   mv.visitVarInsn(ALOAD, 0)
-                   mv.visitInsn(Opcodes.SWAP)
-                   mv.visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
+                   //this is pre-loaded above
+                   visitMethodInsn(context.mplayStaticGetInstance)
+                   visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
+
+                   //TODO: pass constructor parameters to the interceptor
+                   //TODO: filter delegating to this constructors
+                   //TODO: it may be that we already have the field initialized
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-                   super.visitMaxs(max(maxStack, 3), maxLocals)
+                   super.visitMaxs(max(maxStack, 5), maxLocals)
                }
            }
         }

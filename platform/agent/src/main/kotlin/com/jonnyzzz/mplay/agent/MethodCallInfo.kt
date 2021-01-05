@@ -9,14 +9,22 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KFunction
 
-inline fun <reified Y> virtualMethod(ƒ: KFunction<*>) = virtualMethod(Y::class.java, ƒ.name)
-fun virtualMethod(clazz: Class<*>, name: String): MethodCallInfo {
+inline fun <reified Y> method(ƒ: KFunction<*>) = method(Y::class.java, ƒ.name)
+fun method(clazz: Class<*>, name: String): MethodCallInfo {
     val candidates = clazz.methods
         .filter { it.name == name }
         .filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
 
-    require(candidates.size == 1) { "Failed to find instance public method $name in ${clazz.name}: " + candidates }
-    return MethodCallInfo(clazz, candidates.single(), Opcodes.INVOKEVIRTUAL, false)
+    require(candidates.size == 1) {
+        "Failed to find instance public method $name in ${clazz.name}: " + candidates
+    }
+
+    val (opcode, isInterface) = when {
+        clazz.isInterface -> Opcodes.INVOKEINTERFACE to true
+        else -> Opcodes.INVOKEVIRTUAL to false
+    }
+
+    return MethodCallInfo(clazz, candidates.single(), opcode, isInterface)
 }
 
 inline fun <reified Y> staticMethod(ƒ: KFunction<*>) = staticMethod(Y::class.java, ƒ.name)

@@ -6,9 +6,6 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.AdviceAdapter
-import org.objectweb.asm.util.Printer
-import org.objectweb.asm.util.Textifier
-import org.objectweb.asm.util.TraceMethodVisitor
 
 class ClassPatcherMethodCallRecorder(
     val context: ClassPatcherContext,
@@ -48,20 +45,21 @@ class ClassPatcherMethodCallRecorder(
                 var methodRecorderLocalId: Int = -1
                 override fun onMethodEnter() {
                     super.onMethodEnter()
-                    methodRecorderLocalId = newLocal(context.methodCallRecorderType)
-                    mv.visitVarInsn(Opcodes.ALOAD, 0)
-                    mv.visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, context.mplayFieldName, context.mplayFieldDescriptor)
-                    mv.visitLdcInsn(methodToRecord.methodName)
-                    mv.visitLdcInsn(methodToRecord.jvmMethodDescriptor)
-                    mv.visitMethodInsn(context.mplayRecorderOnEnter)
+                    loadThis()
+                    visitFieldInsn(Opcodes.GETFIELD, thisClassJvmName, context.mplayFieldName, context.mplayFieldDescriptor)
+                    visitLdcInsn(methodToRecord.methodName)
+                    visitLdcInsn(methodToRecord.jvmMethodDescriptor)
+                    visitMethodInsn(context.mplayRecorderOnEnter)
+
                     for ((i, argumentType) in argumentTypes.withIndex()) {
                         dup()
                         loadArg(i)
-                        visitMethodInsn(context.mplayWriteMethod(argumentType))
+                        visitMethodInsn(context.mplayVisitMethod(argumentType))
                         storeArg(i)
                     }
                     dup()
                     visitMethodInsn(context.methodCallParametersComplete)
+                    methodRecorderLocalId = newLocal(Type.getType(context.methodCallParametersComplete.returnType))
                     mv.visitVarInsn(Opcodes.ASTORE, methodRecorderLocalId)
                 }
 
@@ -69,28 +67,25 @@ class ClassPatcherMethodCallRecorder(
                     super.onMethodExit(opcode)
 
                     if (Opcodes.ATHROW == opcode) {
-                        mv.visitInsn(DUP)
+                        dup()
                         mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                        mv.visitInsn(SWAP)
-                        mv.visitMethodInsn(context.methodCallCommitWithException)
-                        return
-                    }
-
-                    if (opcode == Opcodes.LRETURN || opcode == Opcodes.DRETURN) {
-                        mv.visitInsn(DUP2)
+                        swap()
+                        visitMethodInsn(context.visitException)
+                    } else if (opcode == Opcodes.LRETURN || opcode == Opcodes.DRETURN) {
+                        dup2()
                         mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                        mv.visitInsn(DUP_X2)
-                        mv.visitInsn(POP)
-                        mv.visitMethodInsn(context.mplayWriteMethod(returnType))
+                        visitInsn(DUP_X2)
+                        visitInsn(POP)
+                        visitMethodInsn(context.mplayVisitMethod(returnType))
                     } else if (opcode != Opcodes.RETURN) {
-                        mv.visitInsn(DUP)
+                        dup()
                         mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                        mv.visitInsn(SWAP)
-                        mv.visitMethodInsn(context.mplayWriteMethod(returnType))
+                        swap()
+                        visitMethodInsn(context.mplayVisitMethod(returnType))
                     }
 
                     mv.visitVarInsn(Opcodes.ALOAD, methodRecorderLocalId)
-                    mv.visitMethodInsn(context.methodCallCommitWithResult)
+                    mv.visitMethodInsn(context.methodCallCommit)
                 }
 
                 override fun visitMaxs(maxStack: Int, maxLocals: Int) {
