@@ -54,8 +54,9 @@ data class InterceptMethodTask(
     val methodRef: MethodRef,
 
     /**
-     * Specifies the declared class (in the Fully qualified format)
-     * for default methods from interfaces
+     * Specifies the interface who's default
+     * method is included for the recording.
+     * Uses the fully qualified name format
      */
     val defaultMethodOfInterface: String?
 )

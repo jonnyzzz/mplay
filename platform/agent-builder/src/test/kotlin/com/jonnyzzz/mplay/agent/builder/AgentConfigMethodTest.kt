@@ -20,6 +20,7 @@ class AgentConfigMethodTest {
 
         val ref = MethodRef("fun", "(Ljava/lang/Object;)I")
         Assert.assertEquals(ref, agentConfig.methodRef)
+        Assert.assertEquals(TestInterfaceWithDefaultImpl::class.java.name, agentConfig.defaultMethodOfInterface)
 
         val baseConfig = config.toImplementMethodTask(method)
         Assert.assertEquals(null, baseConfig)
@@ -46,6 +47,7 @@ class AgentConfigMethodTest {
 
         val ref = MethodRef("baseMethod", "()V")
         Assert.assertEquals(ref, agentConfig.methodRef)
+        Assert.assertEquals(null, agentConfig.defaultMethodOfInterface)
 
         val baseConfig = config.toImplementMethodTask(method)
         Assert.assertEquals(ref, baseConfig?.second?.methodRef)
