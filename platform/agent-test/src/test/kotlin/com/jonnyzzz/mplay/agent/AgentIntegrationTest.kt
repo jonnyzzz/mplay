@@ -36,7 +36,9 @@ class AgentIntegrationTest {
             }
         }
 
-        class TestClass : Base() {
+        open class Inner : Base()
+
+        class TestClass : Inner() {
             fun method() {
                 println("Calling the method of TestClass. ${javaClass.classLoader}")
             }
@@ -49,6 +51,13 @@ class AgentIntegrationTest {
 
         doInterceptTest<TestClass> {
             baseMethod()
+        }
+    }
+
+    @Test
+    fun testDefaultMethodInInterface() {
+        doInterceptTest<ClassWithDefaultMethod> {
+            `fun`(Any())
         }
     }
 

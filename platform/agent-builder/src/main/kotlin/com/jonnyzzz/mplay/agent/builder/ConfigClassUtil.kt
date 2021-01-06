@@ -47,14 +47,18 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
 private fun Method.toMethodInfo() = MethodRef(name, Type.getMethodDescriptor(this))
 
 fun ConfigurationClass.toInterceptMethodTask(m: Method): InterceptMethodTask {
+    val declaredClazz = m.declaringClass
+
     return InterceptMethodTask(
-        methodRef = m.toMethodInfo()
+        methodRef = m.toMethodInfo(),
+        defaultMethodOfInterface = declaredClazz.takeIf { it.isInterface }?.name
     )
 }
 
 fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, ImplementMethodTask>? {
     val declaringType = m.declaringClass
     if (declaringType == interceptedRawType) return null
+    if (declaringType.isInterface) return null
     if (!Modifier.isFinal(m.modifiers)) return null
 
     return declaringType to ImplementMethodTask(

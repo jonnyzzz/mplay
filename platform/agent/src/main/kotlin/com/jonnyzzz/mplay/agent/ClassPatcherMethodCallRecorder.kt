@@ -76,7 +76,8 @@ class ClassPatcherMethodCallRecorder(
                 mv.loadArg(arg)
             }
 
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, thisClassBaseJvmName, ref.methodName, ref.jvmMethodDescriptor, false)
+            val owner = methodToImplement.defaultMethodOfInterface?.replace('.', '/') ?: thisClassBaseJvmName
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, owner, ref.methodName, ref.jvmMethodDescriptor, methodToImplement.defaultMethodOfInterface != null)
             val sz = mv.argumentTypes.sumBy { it.size }
             mv.returnValue()
 

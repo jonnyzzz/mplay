@@ -51,7 +51,13 @@ data class MethodRef(
 )
 
 data class InterceptMethodTask(
-    val methodRef: MethodRef
+    val methodRef: MethodRef,
+
+    /**
+     * Specifies the declared class (in the Fully qualified format)
+     * for default methods from interfaces
+     */
+    val defaultMethodOfInterface: String?
 )
 
 data class ImplementMethodTask(

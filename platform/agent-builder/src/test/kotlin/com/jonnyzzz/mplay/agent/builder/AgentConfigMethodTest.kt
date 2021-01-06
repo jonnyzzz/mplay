@@ -11,6 +11,27 @@ import java.lang.reflect.Method
 class AgentConfigMethodTest {
 
     @Test
+    fun testInterfaceDefaultMethod() {
+        val config = ConfigurationClass.fromClass<ClassWithDefaultMethod>()
+        Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
+
+        val method: Method = config.methodsToIntercept.single()
+        val agentConfig = config.toInterceptMethodTask(method)
+
+        val ref = MethodRef("fun", "(Ljava/lang/Object;)I")
+        Assert.assertEquals(ref, agentConfig.methodRef)
+
+        val baseConfig = config.toImplementMethodTask(method)
+        Assert.assertEquals(null, baseConfig)
+
+        val agent = ConfigurationClasspath(listOf(config)).toAgentConfig()
+        println(agent)
+        Assert.assertEquals(0, agent.classesToOpenMethods.map { it.classNameToIntercept }.size)
+        Assert.assertEquals(1, agent.classesToRecordEvents.size)
+        Assert.assertEquals(0, agent.classesToOpenMethods.size)
+    }
+
+    @Test
     fun testBaseClassMethod() {
         open class Base {
             fun baseMethod() {}

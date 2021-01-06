@@ -55,7 +55,7 @@ data class ConfigurationClass(
     }
 
     val methodsToIntercept by lazy {
-        interceptedRawType.methods.filter { it.declaringClass in allIncludedInterceptedTypeBases }
+        interceptedRawType.methods.filter { it.declaringClass.isInterface ||  it.declaringClass in allIncludedInterceptedTypeBases }
     }
 
     /**
