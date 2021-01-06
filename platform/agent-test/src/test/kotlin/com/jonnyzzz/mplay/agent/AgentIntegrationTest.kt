@@ -27,7 +27,10 @@ class AgentIntegrationTest {
 
     @Test
     fun testInterceptBaseMethods() {
-        open class Base {
+        open class PreBase {
+            open fun preB() = 23
+        }
+        open class Base : PreBase() {
             fun baseMethod() {
                 println("Calling the baseMethod of TestClass. ${javaClass.classLoader}")
             }
@@ -36,6 +39,11 @@ class AgentIntegrationTest {
         class TestClass : Base() {
             fun method() {
                 println("Calling the method of TestClass. ${javaClass.classLoader}")
+            }
+
+            override fun preB(): Int {
+                println("")
+                return super.preB()
             }
         }
 
@@ -108,7 +116,8 @@ class AgentIntegrationTest {
         }
     }
 
-    //TODO: test bridge/synthetic methods are not included (e.g. onces from Generic specialization)
+    //TODO: test bridge/synthetic methods are not included (e.g. ones from Generic specialization)
+    //TODO: handle default methods implementations (at least we may warn that)
 }
 
 

@@ -2,6 +2,7 @@ package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
+import com.jonnyzzz.mplay.agent.config.OpenClassMethodsTask
 import org.objectweb.asm.*
 
 
@@ -13,7 +14,10 @@ interface ClassInterceptor {
 }
 
 fun buildClassInterceptor(config: AgentConfig): ClassInterceptor {
-    val allInterceptors = config.classesToRecordEvents.map { buildClassInterceptor(config, it) }
+    val allInterceptors =
+                config.classesToRecordEvents.map { buildClassInterceptor(config, record = it) } +
+                config.classesToOpenMethods.map { buildClassInterceptor(config, open = it) }
+
     return object : ClassInterceptor {
         override fun intercept(className: String, data: ByteArray) = allInterceptors.mapNotNull {
             it.intercept(className, data)
@@ -21,26 +25,42 @@ fun buildClassInterceptor(config: AgentConfig): ClassInterceptor {
     }
 }
 
-private fun buildClassInterceptor(config: AgentConfig, clazz: InterceptClassTask): ClassInterceptor {
+private fun buildClassInterceptor(
+    config: AgentConfig,
+    record: InterceptClassTask? = null,
+    open: OpenClassMethodsTask? = null
+): ClassInterceptor {
     return object : ClassInterceptor {
         override fun intercept(className: String, data: ByteArray): ByteArray? {
-            if (className != clazz.configClassName) return null
-            return interceptClass(config, clazz, data)
+            return when (className) {
+                record?.classNameToIntercept -> interceptClass(config, record = record, data = data)
+                open?.classNameToIntercept -> interceptClass(config, open = open, data = data)
+                else -> null
+            }
         }
     }
 }
 
 private fun interceptClass(
     config: AgentConfig,
-    clazz: InterceptClassTask,
+    record: InterceptClassTask? = null,
+    open: OpenClassMethodsTask? = null,
     data: ByteArray
 ): ByteArray {
     val writer = ClassWriter(0)
     val context = ClassPatcherContext()
     var visitor : ClassVisitor = writer
-    visitor = ClassPatcherNameAssert(clazz, visitor)
-    visitor = ClassPatcherRecorderInit(context, config, clazz, visitor)
-    visitor = ClassPatcherMethodCallRecorder(context, clazz, visitor)
+
+    if (open != null) {
+        visitor = ClassPatcherMethodCallOpener(open, visitor)
+    }
+
+    if (record != null) {
+        visitor = ClassPatcherNameAssert(record, visitor)
+        visitor = ClassPatcherRecorderInit(context, config, record, visitor)
+        visitor = ClassPatcherMethodCallRecorder(context, record, visitor)
+    }
+
     ClassReader(data).accept(visitor, 0)
     return writer.toByteArray()
 }
