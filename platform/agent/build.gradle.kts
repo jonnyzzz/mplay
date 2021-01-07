@@ -6,7 +6,9 @@ plugins {
 dependencies {
     api("net.bytebuddy:byte-buddy-dep:1.10.19")
     api("org.ow2.asm:asm:9.0")
+    api("org.ow2.asm:asm-commons:9.0")
     api("org.ow2.asm:asm-util:9.0")
+
     implementation(project(":agent-config"))
     implementation(project(":agent-runtime"))
     implementation(kotlin("stdlib-jdk8"))

@@ -2,7 +2,6 @@ package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.agent.config.*
 import com.jonnyzzz.mplay.config.MPlayConfiguration
-import org.objectweb.asm.Type
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
@@ -44,13 +43,11 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
     )
 }
 
-private fun Method.toMethodInfo() = MethodRef(name, Type.getMethodDescriptor(this))
-
 fun ConfigurationClass.toInterceptMethodTask(m: Method): InterceptMethodTask {
     val declaredClazz = m.declaringClass
 
     return InterceptMethodTask(
-        methodRef = m.toMethodInfo(),
+        methodRef = m.toMethodRef(),
         defaultMethodOfInterface = declaredClazz.takeIf { it.isInterface }?.name
     )
 }
@@ -62,6 +59,6 @@ fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, Implemen
     if (!Modifier.isFinal(m.modifiers)) return null
 
     return declaringType to ImplementMethodTask(
-        methodRef = m.toMethodInfo()
+        methodRef = m.toMethodRef()
     )
 }

@@ -20,7 +20,11 @@ dependencies {
     implementation(kotlin("reflect"))
 
     implementation(project(":config"))
+
     implementation("org.ow2.asm:asm:9.0")
+    implementation("org.ow2.asm:asm-commons:9.0")
+    implementation("org.ow2.asm:asm-util:9.0")
+
     implementation("com.squareup:kotlinpoet:1.7.2")
     implementation("org.reflections:reflections:0.9.12")
 

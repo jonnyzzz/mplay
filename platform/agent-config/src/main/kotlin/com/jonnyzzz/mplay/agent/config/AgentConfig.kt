@@ -48,7 +48,9 @@ data class InterceptClassTask(
 data class MethodRef(
     val methodName: String,
     val jvmMethodDescriptor: String,
-)
+) {
+    override fun toString() = "$methodName $jvmMethodDescriptor"
+}
 
 data class InterceptMethodTask(
     val methodRef: MethodRef,
