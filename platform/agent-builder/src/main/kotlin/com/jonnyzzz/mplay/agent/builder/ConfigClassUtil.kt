@@ -34,8 +34,10 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
             classNameToIntercept = clazz.interceptedRawType.name,
             configClassName = clazz.interceptedRawType.name,
             methodsToRecord = clazz.methodsToIntercept.map { m -> clazz.toInterceptMethodTask(m) },
+            constructorsToIntercept = clazz.constructorsToIntercept.map { InterceptConstructorTask(it.toMethodRef()) }
         )
     }
+
     return AgentConfig(
         configClasspath = listOf(), //TODO
         classesToOpenMethods = methodsToImplement,

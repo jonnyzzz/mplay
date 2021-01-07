@@ -7,11 +7,11 @@ import org.objectweb.asm.*
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
 
-@JvmName("resolvePrimaryConstructorsI")
-inline fun <reified T> primaryConstructors() = resolvePrimaryConstructors(T::class.java)
+inline fun <reified T> primaryConstructors() = T::class.java.primaryConstructors()
 
-@JvmName("resolvePrimaryConstructors~")
-fun resolvePrimaryConstructors(clazz: Class<*>) : List<Constructor<*>> {
+fun Class<*>.primaryConstructors() = resolvePrimaryConstructors(this)
+
+private fun resolvePrimaryConstructors(clazz: Class<*>) : List<Constructor<*>> {
     val allConstructors = clazz
         .declaredConstructors
         .filter { !Modifier.isStatic(it.modifiers) }

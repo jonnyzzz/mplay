@@ -1,5 +1,6 @@
 package com.jonnyzzz.mplay.agent.builder
 
+import com.jonnyzzz.mplay.agent.primaryConstructors
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -71,6 +72,10 @@ data class ConfigurationClass(
         methodsToIntercept
             .flatMapTo(HashSet()) { it.genericParameterTypes.toList() }
             .sortedBy { it.typeName }
+    }
+
+    val constructorsToIntercept by lazy {
+        interceptedRawType.primaryConstructors()
     }
 }
 

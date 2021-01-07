@@ -56,6 +56,7 @@ class AgentConfigMethodTest {
         Assert.assertEquals(listOf(Base::class.java.name), agent.classesToOpenMethods.map { it.classNameToIntercept })
         Assert.assertEquals(1, agent.classesToRecordEvents.size)
         Assert.assertEquals(1, agent.classesToOpenMethods.size)
+        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), agent.classesToRecordEvents.single().constructorsToIntercept.map { it.methodRef })
     }
 
     @Test
@@ -67,6 +68,7 @@ class AgentConfigMethodTest {
 
         val config = ConfigurationClass.fromClass<Inh>()
         Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
+        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), config.constructorsToIntercept.map { it.toMethodRef() })
 
         val method: Method = config.methodsToIntercept.single()
         val agentConfig = config.toInterceptMethodTask(method)

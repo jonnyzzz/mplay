@@ -43,6 +43,15 @@ data class InterceptClassTask(
      * Specifies methods (and metadata) for which the recording is done
      */
     val methodsToRecord : List<InterceptMethodTask>,
+
+    /**
+     * Specifies constructors that should be used to inject
+     * the initialization of the methods recorder.
+     *
+     * For example the constructors that delegates to another
+     * constructors of the same type are likely to be excluded
+     */
+    val constructorsToIntercept: List<InterceptConstructorTask>,
 )
 
 data class MethodRef(
@@ -51,6 +60,10 @@ data class MethodRef(
 ) {
     override fun toString() = "$methodName $jvmMethodDescriptor"
 }
+
+data class InterceptConstructorTask(
+    val methodRef: MethodRef,
+)
 
 data class InterceptMethodTask(
     val methodRef: MethodRef,
