@@ -2,6 +2,7 @@ package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.config.InterceptClassTask
+import com.jonnyzzz.mplay.agent.config.MethodRef
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -36,13 +37,17 @@ class ClassPatcherRecorderInit(
 
     override fun visitMethod(
         access: Int,
-        name: String?,
-        descriptor: String?,
+        name: String,
+        descriptor: String,
         signature: String?,
         exceptions: Array<out String>?
     ): MethodVisitor? {
         var methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
-        if (name == "<init>") {
+
+        val constructorTask = clazz.constructorsToIntercept
+            .firstOrNull { it.methodRef == MethodRef(name, descriptor) }
+
+        if (name == "<init>" && constructorTask != null) {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
                    loadThis() //it will be used later to set the field instance
@@ -57,8 +62,6 @@ class ClassPatcherRecorderInit(
                    visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
 
                    //TODO: pass constructor parameters to the interceptor
-                   //TODO: filter delegating to this constructors
-                   //TODO: it may be that we already have the field initialized
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {
