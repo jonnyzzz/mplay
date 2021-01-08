@@ -46,13 +46,28 @@ open class MPlayMethodCallRecorderImpl(
 }
 
 
-data class MPlayRecorderImpl(
-    val recordingClassName: String,
+class MPlayRecorderImpl(
+    recordingClassName: String,
     val configClassName: String,
     val configClasspath: List<URL>,
-) : MPlayRecorder {
+) : MPlayRecorder, MPlayRecorderBuilder {
+    val recordingClassName = recordingClassName.substringAfterLast(".")
+
     init {
         println("MPlayRecorder[$recordingClassName] created")
+    }
+
+    override fun visitConstructorDescriptor(descriptor: String) {
+        println("MPlayRecorder[$recordingClassName] created with $descriptor")
+    }
+
+    override fun visitInstance(instance: Any) {
+        println("MPlayRecorder[$recordingClassName] class instance: $instance")
+    }
+
+    override fun visitConstructorParametersComplete(): MPlayRecorder {
+        println("MPlayRecorder[$recordingClassName] parameters completed")
+        return this
     }
 
     /**
@@ -61,26 +76,5 @@ data class MPlayRecorderImpl(
     override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String) : MPlayMethodCallRecorder {
         println("MPlayRecorder[$recordingClassName] on method: $methodName $jvmMethodDescriptor")
         return MPlayMethodCallRecorderImpl(this, methodName, jvmMethodDescriptor)
-    }
-
-    companion object {
-        /**
-         * This method is executed in bytecode
-         */
-        @JvmStatic
-        fun getInstance(
-            recordingClassName: String,
-            configClassName: String,
-            /**
-             * classpath separated with [File.separator]
-             */
-            configClasspath: String,
-        ): MPlayRecorder {
-            //we may do caching here if needed
-            return MPlayRecorderImpl(
-                recordingClassName,
-                configClassName,
-                configClasspath.split(File.separator).map { File(it).toURI().toURL() })
-        }
     }
 }

@@ -11,15 +11,15 @@ object MPlayRecorderFactory {
      * This method is executed in bytecode
      */
     @JvmStatic
-    fun getInstance(
-        actualClass: Class<*>,
+    fun newRecorderBuilder(
+        recordingClass: Class<*>,
         recordingClassName: String,
         configClassName: String,
         /**
          * classpath separated with [File.separator]
          */
         configClasspath: String,
-    ): MPlayRecorder {
+    ): MPlayRecorderBuilder {
         //TODO: make it use Service API to load the specific service
         //TODO: make sure we only capture events for the specified class, not it's subclasses (check options if needed)
         //we may do caching here if needed

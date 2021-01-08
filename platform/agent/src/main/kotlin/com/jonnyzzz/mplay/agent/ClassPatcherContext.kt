@@ -4,10 +4,23 @@ import com.jonnyzzz.mplay.agent.runtime.*
 import org.objectweb.asm.Type
 
 class ClassPatcherContext {
-    val mplayStaticGetInstance = staticMethod<MPlayRecorderFactory>(MPlayRecorderFactory::getInstance)
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    val objectGetClass = method<Object>(Object::getClass)
+
+    val mplayNewRecorderBuilder = staticMethod<MPlayRecorderFactory>(MPlayRecorderFactory::newRecorderBuilder)
+
+    @Suppress("PrivatePropertyName", "unused")
+    private val test_mplayNewRecorderBuilder = require(mplayNewRecorderBuilder.returnType == MPlayRecorderBuilder::class.java)
+
+    val mplayRecorderBuilderVisitInstance = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitInstance)
+    val mplayRecorderBuilderVisitDescriptor = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorDescriptor)
+    val mplayRecorderBuilderVisitComplete = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorParametersComplete)
+
+    @Suppress("PrivatePropertyName", "unused")
+    private val test_mplayRecorderBuilderVisitComplete = require(mplayRecorderBuilderVisitComplete.returnType == MPlayRecorder::class.java)
 
     val mplayFieldName = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
-    val mplayFieldDescriptor = Type.getDescriptor(mplayStaticGetInstance.returnType)
+    val mplayFieldDescriptor = Type.getDescriptor(MPlayRecorder::class.java)
 
     val mplayRecorderOnEnter = method<MPlayRecorder>(MPlayRecorder::onMethodEnter)
 

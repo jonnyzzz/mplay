@@ -50,18 +50,33 @@ class ClassPatcherRecorderInit(
         if (name == "<init>" && constructorTask != null) {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
-                   loadThis() //it will be used later to set the field instance
-                   dup()
+                   loadThis()
                    visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false)
                    visitLdcInsn(clazz.classNameToIntercept)
                    visitLdcInsn(clazz.configClassName)
                    visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
 
-                   //this is pre-loaded above
-                   visitMethodInsn(context.mplayStaticGetInstance)
-                   visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
+                   visitMethodInsn(context.mplayNewRecorderBuilder)
 
-                   //TODO: pass constructor parameters to the interceptor
+                   dup()
+                   visitLdcInsn(descriptor)
+                   visitMethodInsn(context.mplayRecorderBuilderVisitDescriptor)
+
+                   dup()
+                   loadThis()
+                   visitMethodInsn(context.mplayRecorderBuilderVisitInstance)
+
+                   for ((idx, type) in argumentTypes.withIndex()) {
+                       dup()
+                       loadArg(idx)
+                       visitMethodInsn(context.mplayVisitMethod(type))
+                       storeArg(idx)
+                   }
+
+                   visitMethodInsn(context.mplayRecorderBuilderVisitComplete)
+                   loadThis()
+                   swap()
+                   visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {
