@@ -51,7 +51,7 @@ class ClassPatcherRecorderInit(
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
                    loadThis()
-                   visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false)
+                   visitMethodInsn(context.objectGetClass)
                    visitLdcInsn(clazz.classNameToIntercept)
                    visitLdcInsn(clazz.configClassName)
                    visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
