@@ -9,6 +9,8 @@ class ClassPatcherContext {
     @Suppress("PrivatePropertyName", "unused")
     private val test_mplayNewRecorderBuilder = require(mplayNewRecorderBuilder.returnType == MPlayRecorderBuilder::class.java)
 
+    val mplayRecorderBuilderVisitRecordingClassName = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitRecordingClassName)
+    val mplayRecorderBuilderVisitConfigClassName = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConfigurationClassName)
     val mplayRecorderBuilderVisitInstance = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitInstance)
     val mplayRecorderBuilderVisitDescriptor = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorDescriptor)
     val mplayRecorderBuilderVisitComplete = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorParametersComplete)

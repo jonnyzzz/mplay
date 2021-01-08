@@ -47,14 +47,14 @@ open class MPlayMethodCallRecorderImpl(
 
 
 class MPlayRecorderImpl(
-    recordingClassName: String,
-    val configClassName: String,
-    val configClasspath: List<URL>,
 ) : MPlayRecorder, MPlayRecorderBuilder {
-    val recordingClassName = recordingClassName.substringAfterLast(".")
+    lateinit var recordingClassName : String
 
-    init {
-        println("MPlayRecorder[$recordingClassName] created")
+    override fun visitRecordingClassName(recordingClassName: String) {
+        this.recordingClassName = recordingClassName.substringAfterLast(".")
+    }
+
+    override fun visitConfigurationClassName(configurationClassName: String) {
     }
 
     override fun visitConstructorDescriptor(descriptor: String) {
@@ -70,9 +70,6 @@ class MPlayRecorderImpl(
         return this
     }
 
-    /**
-     * Used the [InterceptMethodTask.methodName] and [InterceptMethodTask.jvmMethodDescriptor]
-     */
     override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String) : MPlayMethodCallRecorder {
         println("MPlayRecorder[$recordingClassName] on method: $methodName $jvmMethodDescriptor")
         return MPlayMethodCallRecorderImpl(this, methodName, jvmMethodDescriptor)

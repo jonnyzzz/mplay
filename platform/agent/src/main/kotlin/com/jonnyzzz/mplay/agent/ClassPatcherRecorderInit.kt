@@ -50,10 +50,16 @@ class ClassPatcherRecorderInit(
         if (name == "<init>" && constructorTask != null) {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
-                   visitLdcInsn(clazz.classNameToIntercept)
-                   visitLdcInsn(clazz.configClassName)
                    visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
                    visitMethodInsn(context.mplayNewRecorderBuilder)
+
+                   dup()
+                   visitLdcInsn(clazz.classNameToIntercept)
+                   visitMethodInsn(context.mplayRecorderBuilderVisitRecordingClassName)
+
+                   dup()
+                   visitLdcInsn(clazz.configClassName)
+                   visitMethodInsn(context.mplayRecorderBuilderVisitConfigClassName)
 
                    dup()
                    visitLdcInsn(descriptor)
