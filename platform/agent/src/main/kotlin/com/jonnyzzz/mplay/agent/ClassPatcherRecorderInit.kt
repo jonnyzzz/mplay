@@ -28,7 +28,7 @@ class ClassPatcherRecorderInit(
     ) {
         super.visit(version, access, name, signature, superName, interfaces)
         jvmClassName = name
-        cv.visitField(Opcodes.ACC_FINAL or Opcodes.ACC_PRIVATE,
+        cv.visitField(Opcodes.ACC_FINAL or Opcodes.ACC_PRIVATE or Opcodes.ACC_SYNTHETIC,
             context.mplayFieldName,
             context.mplayFieldDescriptor,
             null,
@@ -50,12 +50,9 @@ class ClassPatcherRecorderInit(
         if (name == "<init>" && constructorTask != null) {
            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
-                   loadThis()
-                   visitMethodInsn(context.objectGetClass)
                    visitLdcInsn(clazz.classNameToIntercept)
                    visitLdcInsn(clazz.configClassName)
                    visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
-
                    visitMethodInsn(context.mplayNewRecorderBuilder)
 
                    dup()

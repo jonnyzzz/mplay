@@ -4,9 +4,6 @@ import com.jonnyzzz.mplay.agent.runtime.*
 import org.objectweb.asm.Type
 
 class ClassPatcherContext {
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-    val objectGetClass = method<Object>(Object::getClass)
-
     val mplayNewRecorderBuilder = staticMethod<MPlayRecorderFactory>(MPlayRecorderFactory::newRecorderBuilder)
 
     @Suppress("PrivatePropertyName", "unused")

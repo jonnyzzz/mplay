@@ -12,7 +12,6 @@ object MPlayRecorderFactory {
      */
     @JvmStatic
     fun newRecorderBuilder(
-        recordingClass: Class<*>,
         recordingClassName: String,
         configClassName: String,
         /**
