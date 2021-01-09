@@ -39,10 +39,13 @@ sourceSets {
 }
 
 tasks.shadowJar.configure {
+    inputs.file(project.buildFile)
+
+    exclude("**module-info.class", "META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+
     manifest {
         attributes(
             "Premain-Class" to "com.jonnyzzz.mplay.agent.MPlayAgent",
-
             "Can-Redefine-Classes" to false,
             "Can-Set-Native-Method-Prefix" to false
         )
@@ -50,8 +53,14 @@ tasks.shadowJar.configure {
 
     fun relocate(pkg: String) = relocate(pkg, "com.jonnyzzz.mplay.shadow.$pkg")
     fun relocateAll(vararg pkg: String) = pkg.forEach { relocate(it) }
-    relocateAll("kotlin", "net.bytebuddy", "org.intellij", "org.jetbrains", "org.objectweb.asm")
-    minimize()
+    relocateAll(
+        "kotlin",
+        "net.bytebuddy",
+        "org.intellij",
+        "org.jetbrains",
+        "org.objectweb.asm",
+        "com.fasterxml.jackson"
+    )
 
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
