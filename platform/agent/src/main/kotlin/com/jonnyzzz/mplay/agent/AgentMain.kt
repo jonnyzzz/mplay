@@ -1,77 +1,67 @@
 package com.jonnyzzz.mplay.agent
 
-import com.jonnyzzz.mplay.agent.config.AgentConfig
-import net.bytebuddy.agent.builder.AgentBuilder
-import net.bytebuddy.description.type.TypeDefinition
-import net.bytebuddy.description.type.TypeDescription
-import net.bytebuddy.dynamic.DynamicType
-import net.bytebuddy.implementation.MethodDelegation.to
-import net.bytebuddy.matcher.ElementMatcher
-import net.bytebuddy.utility.JavaModule
+import com.jonnyzzz.mplay.agent.config.loadAgentConfig
+import com.jonnyzzz.mplay.agent.generated.MPlayVersions
+import java.io.File
+import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
+import java.security.ProtectionDomain
 
-import net.bytebuddy.matcher.ElementMatchers
-
-
-class MPlayAgent {
-    companion object {
-        @JvmStatic
-        fun premain(
-            arguments: String?,
-            instrumentation: Instrumentation
-        ) {
-            val args = (arguments ?: "")
-                .split(";")
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-                .map {
-                    val kv = it.split("=", limit = 2)
-                    kv[0] to kv.getOrNull(1)
-                }.toMap().toSortedMap()
-
-            premainImpl(MPlayAgentArgs(args), instrumentation)
+@Suppress("unused")
+object MPlayAgentImpl {
+    @JvmStatic
+    fun premain(
+        arguments: String?,
+        instrumentation: Instrumentation
+    ) {
+        require(javaClass.classLoader == null) {
+            "this class should be loaded with bootstrap classloader, but was " + javaClass.classLoader
         }
-    }
-}
 
-class MPlayAgentArgs(
-    private val kv: Map<String, String?>
-) {
-    fun typeMatcher() = ElementMatcher<TypeDefinition> { type ->
-        !type.isPrimitive && !type.isInterface /*TODO: test type*/
-    }
+        println("Starting MPlay Agent ${MPlayVersions.buildNumber}")
 
-    fun parseAgentConfig() : AgentConfig = TODO()
-}
+        val args: Map<String, String?> = (arguments ?: "")
+            .split(";")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .map {
+                val kv = it.split("=", limit = 2)
+                kv[0] to kv.getOrNull(1)
+            }.toMap().toSortedMap()
 
-private fun premainImpl(
-    args: MPlayAgentArgs,
-    instrumentation: Instrumentation
-) {
-    val interceptor = MPlayInterceptor()
-    println("Interceptor instance: $interceptor")
-    buildByteBuddyAgent(args.parseAgentConfig()).installOn(instrumentation)
-}
+        val agentConfigArg = "config"
+        val agentConfigFile = args[agentConfigArg]?.let { File(it)}
+            ?: error("Failed to read the $agentConfigArg=<file> parameter from agent configuration")
 
-fun buildByteBuddyAgent(config: AgentConfig) : AgentBuilder {
-    val interceptor = MPlayInterceptor()
+        println("Configuration from $agentConfigFile")
 
-    // we should prepare configuration classes for each of the types here
-    // we should pass these configuration to interceptors
+        val agentConfig = runCatching {
+            loadAgentConfig(agentConfigFile.readBytes())
+        }.getOrElse {
+            throw Error("Failed to read or parse agent configuration from $agentConfigFile. ${it.message}", it)
+        }
 
-    val namesToIntercept = config.classesToRecordEvents.map { it.classNameToIntercept }.toSortedSet()
-
-    return AgentBuilder.Default()
-        .type(ElementMatcher {
-            it.name in namesToIntercept
+        println(buildString {
+            append("Classes to record: ")
+            agentConfig
+                .classesToRecordEvents
+                .map { it.classNameToIntercept.substringAfterLast(".") }
+                .toSortedSet()
+                .joinTo(this)
+            appendLine()
         })
-        .transform { builder: DynamicType.Builder<*>,
-                     _: TypeDescription,
-                     _: ClassLoader,
-                     _: JavaModule ->
-            builder.method(
-                //TODO: methods should go from configuration (also the way to serualize params too)
-                ElementMatchers.not(ElementMatchers.isDeclaredBy(Object::class.java))
-            ).intercept(to(interceptor))
-        }
+
+        val interceptor = buildClassInterceptor(agentConfig)
+        instrumentation.addTransformer(object: ClassFileTransformer {
+            override fun transform(
+                loader: ClassLoader?,
+                className: String,
+                classBeingRedefined: Class<*>?,
+                protectionDomain: ProtectionDomain?,
+                classfileBuffer: ByteArray
+            ): ByteArray? {
+                return interceptor.intercept(className, classfileBuffer)
+            }
+        })
+    }
 }

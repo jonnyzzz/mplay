@@ -14,7 +14,10 @@ class InstrumentingClassLoader(
 ) : ClassLoader(null) {
 
     override fun findClass(name: String): Class<*> {
-        if (name.startsWith("kotlin.")) {
+        if (name.startsWith("kotlin.") ||
+            name.startsWith("com.jonnyzzz.mplay.config.") ||
+            name.startsWith("com.jonnyzzz.mplay.agent.config.") ||
+            name.startsWith("com.jonnyzzz.mplay.agent.runtime.")) {
             return realLoader.loadClass(name)
         }
 

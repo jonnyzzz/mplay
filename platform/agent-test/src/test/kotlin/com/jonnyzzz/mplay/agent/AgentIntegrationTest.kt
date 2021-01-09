@@ -6,6 +6,7 @@ import com.jonnyzzz.mplay.agent.builder.ConfigurationClass
 import com.jonnyzzz.mplay.agent.builder.fromClass
 import com.jonnyzzz.mplay.agent.builder.toAgentConfig
 import com.jonnyzzz.mplay.agent.builder.toClasspath
+import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderFactory
 import org.junit.Test
 import java.util.function.Consumer
 
@@ -138,6 +139,9 @@ inline fun <reified T> doInterceptTest(crossinline testAction: T.() -> Unit) {
     val config = ConfigurationClass.fromClass<T>().toClasspath()
     val agentConfig = config.toAgentConfig()
     val interceptor = buildClassInterceptor(agentConfig)
+
+    MPlayRecorderFactory.factory = MPlayRecorderBuilderFactoryImpl()
+    MPlayRecorderFactory.agentConfig = agentConfig
 
     InstrumentingClassLoader(interceptor).apply {
         val testClazz = loadClassByName<T>()

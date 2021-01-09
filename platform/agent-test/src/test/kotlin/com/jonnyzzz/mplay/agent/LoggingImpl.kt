@@ -1,8 +1,6 @@
-package com.jonnyzzz.mplay.agent.runtime.impl
+package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.runtime.*
-import java.io.File
-import java.net.URL
 
 /**
  * This class methods are executed directly from
@@ -45,6 +43,9 @@ open class MPlayMethodCallRecorderImpl(
     }
 }
 
+class MPlayRecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
+    override fun newRecorderBuilderFactory() = MPlayRecorderImpl()
+}
 
 class MPlayRecorderImpl(
 ) : MPlayRecorder, MPlayRecorderBuilder {

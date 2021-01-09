@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":config"))
+    implementation(project(":agent-config"))
 }
 
 java {
@@ -19,11 +20,5 @@ publishing {
         create<MavenPublication>("maven") {
             from(components["java"])
         }
-    }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 }
