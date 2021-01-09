@@ -42,17 +42,18 @@ object MPlayAgentImpl {
         }
 
         println(buildString {
-            append("Classes to record: ")
+            appendLine("Classes to record: ")
             agentConfig
                 .classesToRecordEvents
-                .map { it.classNameToIntercept.substringAfterLast(".") }
+                .map { it.classNameToIntercept }
                 .toSortedSet()
-                .joinTo(this)
+                .joinTo(this, "") { "  $it" }
             appendLine()
         })
 
-        val interceptor = buildClassInterceptor(agentConfig)
         instrumentation.addTransformer(object: ClassFileTransformer {
+            private val interceptor = buildClassInterceptor(agentConfig)
+
             override fun transform(
                 loader: ClassLoader?,
                 className: String,
@@ -60,7 +61,13 @@ object MPlayAgentImpl {
                 protectionDomain: ProtectionDomain?,
                 classfileBuffer: ByteArray
             ): ByteArray? {
-                return interceptor.intercept(className, classfileBuffer)
+                val classFqn = className.replace("/", ".")
+                println("Checking $classFqn")
+                val patched = interceptor.intercept(classFqn, classfileBuffer)
+                if (patched != null) {
+                    println("MPlay instrumented $classFqn")
+                }
+                return patched
             }
         })
     }

@@ -14,28 +14,29 @@ interface ClassInterceptor {
 }
 
 fun buildClassInterceptor(config: AgentConfig): ClassInterceptor {
-    val allInterceptors =
-                config.classesToRecordEvents.map { buildClassInterceptor(config, record = it) } +
-                config.classesToOpenMethods.map { buildClassInterceptor(config, open = it) }
-
-    return object : ClassInterceptor {
-        override fun intercept(className: String, data: ByteArray) = allInterceptors.mapNotNull {
-            it.intercept(className, data)
-        }.firstOrNull()
-    }
-}
-
-private fun buildClassInterceptor(
-    config: AgentConfig,
-    record: InterceptClassTask? = null,
-    open: OpenClassMethodsTask? = null
-): ClassInterceptor {
     return object : ClassInterceptor {
         override fun intercept(className: String, data: ByteArray): ByteArray? {
-            return when (className) {
-                record?.classNameToIntercept -> interceptClass(config, record = record, data = data)
-                open?.classNameToIntercept -> interceptClass(config, open = open, data = data)
-                else -> null
+            println("MPlay instrumentation checking $className")
+
+            var patched = data
+            for (open in config.classesToOpenMethods) {
+                if (open.classNameToIntercept == className) {
+                    patched = interceptClass(config, open = open, data = patched)
+                }
+            }
+
+            for (record in config.classesToRecordEvents) {
+                if (record.classNameToIntercept == className) {
+                    patched = interceptClass(config, record = record, data = patched)
+                }
+            }
+
+            return when {
+                patched.contentEquals(data) -> null
+                else -> {
+                    println("MPlay instrumented $className")
+                    patched
+                }
             }
         }
     }
@@ -47,20 +48,27 @@ private fun interceptClass(
     open: OpenClassMethodsTask? = null,
     data: ByteArray
 ): ByteArray {
-    val writer = ClassWriter(0)
-    val context = ClassPatcherContext()
-    var visitor : ClassVisitor = writer
+    try {
+        val writer = ClassWriter(0)
+        val context = ClassPatcherContext()
+        var visitor: ClassVisitor = writer
 
-    if (open != null) {
-        visitor = ClassPatcherMethodCallOpener(open, visitor)
+        if (open != null) {
+            visitor = ClassPatcherMethodCallOpener(open, visitor)
+        }
+
+        if (record != null) {
+            visitor = ClassPatcherNameAssert(record, visitor)
+            visitor = ClassPatcherRecorderInit(context, config, record, visitor)
+            visitor = ClassPatcherMethodCallRecorder(context, record, visitor)
+        }
+
+        ClassReader(data).accept(visitor, 0)
+        return writer.toByteArray()
+    } catch (t: Throwable) {
+        System.err.println("\n\nMPlay Agent. Failed to instrument class" +
+                " ${record?.classNameToIntercept ?: open?.classNameToIntercept}")
+        t.printStackTrace(System.err)
+        return data
     }
-
-    if (record != null) {
-        visitor = ClassPatcherNameAssert(record, visitor)
-        visitor = ClassPatcherRecorderInit(context, config, record, visitor)
-        visitor = ClassPatcherMethodCallRecorder(context, record, visitor)
-    }
-
-    ClassReader(data).accept(visitor, 0)
-    return writer.toByteArray()
 }

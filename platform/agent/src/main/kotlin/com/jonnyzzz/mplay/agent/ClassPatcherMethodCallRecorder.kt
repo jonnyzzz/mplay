@@ -63,12 +63,12 @@ class ClassPatcherMethodCallRecorder(
             val baseVisitor = visitMethod(
                 access,
                 ref.methodName,
-                ref.jvmMethodDescriptor,
+                ref.descriptor,
                 null, //TODO
                 arrayOf() //TODO
             ) ?: continue
 
-            val mv = GeneratorAdapter(baseVisitor, access, ref.methodName, ref.jvmMethodDescriptor)
+            val mv = GeneratorAdapter(baseVisitor, access, ref.methodName, ref.descriptor)
 
             mv.visitCode()
             mv.loadThis()
@@ -77,7 +77,7 @@ class ClassPatcherMethodCallRecorder(
             }
 
             val owner = methodToImplement.defaultMethodOfInterface?.replace('.', '/') ?: thisClassBaseJvmName
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, owner, ref.methodName, ref.jvmMethodDescriptor, methodToImplement.defaultMethodOfInterface != null)
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, owner, ref.methodName, ref.descriptor, methodToImplement.defaultMethodOfInterface != null)
             val sz = mv.argumentTypes.sumBy { it.size }
             mv.returnValue()
 
@@ -101,7 +101,7 @@ class ClassPatcherMethodCallRecorder(
             loadThis()
             visitFieldInsn(GETFIELD, thisClassJvmName, context.mplayFieldName, context.mplayFieldDescriptor)
             visitLdcInsn(methodToRecord.methodName)
-            visitLdcInsn(methodToRecord.jvmMethodDescriptor)
+            visitLdcInsn(methodToRecord.descriptor)
             visitMethodInsn(context.mplayRecorderOnEnter)
 
             for ((i, argumentType) in argumentTypes.withIndex()) {

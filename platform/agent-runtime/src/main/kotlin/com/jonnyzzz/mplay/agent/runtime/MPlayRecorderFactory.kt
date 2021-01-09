@@ -14,11 +14,7 @@ object MPlayRecorderFactory {
      * This method is executed in bytecode
      */
     @JvmStatic
-    fun newRecorderBuilder(
-        //TODO: recorderClasspath: String,
-        /**
-         * classpath separated with [File.separator]
-         */
-        classpath: String,
-    ): MPlayRecorderBuilder = factory.newRecorderBuilderFactory()
+    fun newRecorderBuilder(): MPlayRecorderBuilder {
+        return factory.newRecorderBuilderFactory()
+    }
 }

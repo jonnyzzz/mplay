@@ -43,9 +43,6 @@ tasks.shadowJar.configure {
         "org.objectweb.asm",
         "com.fasterxml.jackson"
     )
-
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
 }
 
 sourceSets {
@@ -55,6 +52,7 @@ sourceSets {
     val runSmoke1 by tasks.creating(JavaExec::class.java) {
         group = "verification"
         dependsOn(tasks.shadowJar)
+        dependsOn(tasks.classes)
         dependsOn(smoke1.classesTaskName)
         mainClass.set("com.jonnyzzz.mplay.agent.smoke1.Smoke1MainKt")
         doFirst {

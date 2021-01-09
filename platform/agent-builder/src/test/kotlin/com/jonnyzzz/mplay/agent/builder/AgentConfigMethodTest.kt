@@ -99,7 +99,7 @@ class AgentConfigMethodTest {
         val agentConfig = config.toInterceptMethodTask(method)
 
         Assert.assertEquals("m", agentConfig.methodRef.methodName)
-        Assert.assertEquals("(Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.jvmMethodDescriptor)
+        Assert.assertEquals("(Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.descriptor)
     }
 
     @Test
@@ -117,7 +117,7 @@ class AgentConfigMethodTest {
         val agentConfig = config.toInterceptMethodTask(method)
 
         Assert.assertEquals("m", agentConfig.methodRef.methodName)
-        Assert.assertEquals("(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.jvmMethodDescriptor)
+        Assert.assertEquals("(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", agentConfig.methodRef.descriptor)
     }
 
     @Test
@@ -135,6 +135,6 @@ class AgentConfigMethodTest {
         val agentConfig = config.toInterceptMethodTask(method)
 
         Assert.assertEquals("m", agentConfig.methodRef.methodName)
-        Assert.assertEquals("(Ljava/lang/String;)J", agentConfig.methodRef.jvmMethodDescriptor)
+        Assert.assertEquals("(Ljava/lang/String;)J", agentConfig.methodRef.descriptor)
     }
 }

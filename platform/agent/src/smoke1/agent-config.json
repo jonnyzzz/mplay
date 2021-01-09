@@ -1,5 +1,19 @@
 {
   "configClasspath": [],
-  "classesToRecordEvents": [],
+  "classesToRecordEvents": [{
+    "classNameToIntercept": "com.jonnyzzz.mplay.agent.smoke1.SmokeTestClass",
+    "methodsToRecord": [{
+      "methodRef": {
+        "methodName": "callMe",
+        "descriptor": "(I)I"
+      }
+    }],
+    "constructorsToIntercept": [{
+      "methodRef": {
+        "methodName": "<init>",
+        "descriptor": "()V"
+      }
+    }]
+  }],
   "classesToOpenMethods": []
 }

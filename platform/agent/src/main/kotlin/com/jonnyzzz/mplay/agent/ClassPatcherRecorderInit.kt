@@ -48,18 +48,21 @@ class ClassPatcherRecorderInit(
             .firstOrNull { it.methodRef == MethodRef(name, descriptor) }
 
         if (name == "<init>" && constructorTask != null) {
-           methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
+            println("Intercepting constructor $name with $descriptor to record calls")
+
+            methodVisitor = object: AdviceAdapter(api, methodVisitor, access, name, descriptor) {
                override fun onMethodEnter() {
-                   visitLdcInsn(config.configClasspath.distinct().joinToString(File.separator))
                    visitMethodInsn(context.mplayNewRecorderBuilder)
 
                    dup()
                    visitLdcInsn(clazz.classNameToIntercept)
                    visitMethodInsn(context.mplayRecorderBuilderVisitRecordingClassName)
 
-                   dup()
-                   visitLdcInsn(clazz.configClassName)
-                   visitMethodInsn(context.mplayRecorderBuilderVisitConfigClassName)
+                   clazz.configClassName?.let { configClassName ->
+                       dup()
+                       visitLdcInsn(configClassName)
+                       visitMethodInsn(context.mplayRecorderBuilderVisitConfigClassName)
+                   }
 
                    dup()
                    visitLdcInsn(descriptor)

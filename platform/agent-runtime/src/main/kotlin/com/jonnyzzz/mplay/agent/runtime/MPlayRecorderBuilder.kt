@@ -20,7 +20,9 @@ interface MPlayRecorderBuilder : MPlayValuesVisitor {
     /**
      * Visits the class fully qualified name of the configuration
      * that may provide hints on the methods recording of the
-     * given class
+     * given class.
+     *
+     * May not be called if there is no configuration class associated
      */
     fun visitConfigurationClassName(configurationClassName: String)
 

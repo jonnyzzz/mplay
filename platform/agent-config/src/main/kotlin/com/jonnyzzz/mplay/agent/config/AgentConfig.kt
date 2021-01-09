@@ -17,7 +17,7 @@ data class AgentConfig(
 
     val classesToRecordEvents: List<InterceptClassTask>,
 
-    val classesToOpenMethods: List<OpenClassMethodsTask>,
+    val classesToOpenMethods: List<OpenClassMethodsTask> = listOf(),
 )
 
 @Serializable
@@ -42,7 +42,7 @@ data class InterceptClassTask(
      * [MPlayConfiguration] with the [classNameToIntercept] as the
      * generic parameter
      */
-    val configClassName: String,
+    val configClassName: String? = null,
 
     /**
      * Specifies methods (and metadata) for which the recording is done
@@ -62,9 +62,9 @@ data class InterceptClassTask(
 @Serializable
 data class MethodRef(
     val methodName: String,
-    val jvmMethodDescriptor: String,
+    val descriptor: String,
 ) {
-    override fun toString() = "$methodName $jvmMethodDescriptor"
+    override fun toString() = "$methodName $descriptor"
 }
 
 @Serializable
@@ -81,7 +81,7 @@ data class InterceptMethodTask(
      * method is included for the recording.
      * Uses the fully qualified name format
      */
-    val defaultMethodOfInterface: String?
+    val defaultMethodOfInterface: String? = null,
 )
 
 @Serializable
