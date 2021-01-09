@@ -2,10 +2,13 @@
 
 package com.jonnyzzz.mplay.agent.config
 
+import kotlinx.serialization.Serializable
+
 /**
  * TODO: How should we deal with config classpath here?
  * Is it fine to assume these classes are included into the agent? Or mayby in the app classpath?
  */
+@Serializable
 data class AgentConfig(
     /**
      * classpath of the configuration classes
@@ -17,6 +20,7 @@ data class AgentConfig(
     val classesToOpenMethods: List<OpenClassMethodsTask>,
 )
 
+@Serializable
 data class OpenClassMethodsTask(
     /**
      * Fully Qualified name of the class to record method calls
@@ -26,6 +30,7 @@ data class OpenClassMethodsTask(
     val methodsToOpen: List<OpenMethodTask>
 )
 
+@Serializable
 data class InterceptClassTask(
     /**
      * Fully Qualified name of the class to record method calls
@@ -54,6 +59,7 @@ data class InterceptClassTask(
     val constructorsToIntercept: List<InterceptConstructorTask>,
 )
 
+@Serializable
 data class MethodRef(
     val methodName: String,
     val jvmMethodDescriptor: String,
@@ -61,10 +67,12 @@ data class MethodRef(
     override fun toString() = "$methodName $jvmMethodDescriptor"
 }
 
+@Serializable
 data class InterceptConstructorTask(
     val methodRef: MethodRef,
 )
 
+@Serializable
 data class InterceptMethodTask(
     val methodRef: MethodRef,
 
@@ -76,6 +84,7 @@ data class InterceptMethodTask(
     val defaultMethodOfInterface: String?
 )
 
+@Serializable
 data class OpenMethodTask(
     val methodRef: MethodRef,
 )

@@ -1,15 +1,15 @@
 package com.jonnyzzz.mplay.agent.config
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
 fun saveAgentConfig(config: AgentConfig): ByteArray {
-    val om = jacksonObjectMapper()
-    return om.writerWithDefaultPrettyPrinter().writeValueAsBytes(config)
+    return Json.encodeToString(config).toByteArray(Charsets.UTF_8)
 }
 
 fun loadAgentConfig(config: ByteArray) : AgentConfig {
-    val om = jacksonObjectMapper()
-    return om.readValue(config, AgentConfig::class.java)
+    return Json.decodeFromString(config.toString(Charsets.UTF_8))
 }
 
