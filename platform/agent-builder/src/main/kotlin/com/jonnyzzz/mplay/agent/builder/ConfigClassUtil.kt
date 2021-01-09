@@ -54,13 +54,13 @@ fun ConfigurationClass.toInterceptMethodTask(m: Method): InterceptMethodTask {
     )
 }
 
-fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, ImplementMethodTask>? {
+fun ConfigurationClass.toImplementMethodTask(m: Method): Pair<Class<*>, OpenMethodTask>? {
     val declaringType = m.declaringClass
     if (declaringType == interceptedRawType) return null
     if (declaringType.isInterface) return null
     if (!Modifier.isFinal(m.modifiers)) return null
 
-    return declaringType to ImplementMethodTask(
+    return declaringType to OpenMethodTask(
         methodRef = m.toMethodRef()
     )
 }
