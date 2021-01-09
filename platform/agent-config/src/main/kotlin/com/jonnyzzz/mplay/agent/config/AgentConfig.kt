@@ -23,7 +23,7 @@ data class OpenClassMethodsTask(
      */
     val classNameToIntercept: String,
 
-    val methodsToOpen: List<ImplementMethodTask>
+    val methodsToOpen: List<OpenMethodTask>
 )
 
 data class InterceptClassTask(
@@ -76,6 +76,6 @@ data class InterceptMethodTask(
     val defaultMethodOfInterface: String?
 )
 
-data class ImplementMethodTask(
+data class OpenMethodTask(
     val methodRef: MethodRef,
 )
