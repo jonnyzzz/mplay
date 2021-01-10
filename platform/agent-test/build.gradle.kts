@@ -57,11 +57,15 @@ sourceSets {
         doFirst {
             val fakeConfigFile = file("src/smoke1/agent-config.json")
             val agentJar = runtimeAgent.singleFile
+            val recordDir = File(buildDir, "smoke1-record")
+            delete(recordDir)
+
             classpath = smoke1.runtimeClasspath
             enableAssertions = true
             jvmArgs = listOf("-javaagent:$agentJar=" +
                     "config=$fakeConfigFile;" +
-                    "recorder-classpath=$runtimeRecorderClasspathFile"
+                    "recorder-classpath=$runtimeRecorderClasspathFile;" +
+                    "record-dir=${recordDir}"
 //                "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
             )
         }

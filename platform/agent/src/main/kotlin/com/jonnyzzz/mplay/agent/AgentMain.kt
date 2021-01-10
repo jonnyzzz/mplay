@@ -70,7 +70,7 @@ object MPlayAgentImpl {
             .onEach { require(it.isFile) { "File $it must exist" } }
             .map { it.toURI().toURL()}
 
-        println("MPlay Recorder Classpath URLs: " + recorderClasspath.joinToString(""){ "\n  $it"})
+        println("MPlay Recorder Classpath URLs: " + recorderClasspath.joinToString(""){ "\n  $it"} + "\n")
 
         MPlayRecorderFactory.factory = object: MPlayRecorderBuilderFactory {
             private val factory by lazy {
@@ -97,7 +97,6 @@ object MPlayAgentImpl {
                 classfileBuffer: ByteArray
             ): ByteArray? {
                 val classFqn = className.replace("/", ".")
-                println("Checking $classFqn")
                 val patched = interceptor.intercept(classFqn, classfileBuffer)
                 if (patched != null) {
                     println("MPlay instrumented $classFqn")

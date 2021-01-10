@@ -17,17 +17,22 @@ class SmokeTestClass2 {
 }
 
 fun main() {
-    println("It works!")
-    println("Classpath:")
+    println("The Smoke1 App is now running")
+    println("The Smoke1 App classpath:")
+
     System.getProperty("java.class.path").split(File.pathSeparator).forEach {
         println("  $it")
     }
+    println()
 
     //test agent is able to inject the class to the application
     val clazz = Class.forName("com.jonnyzzz.mplay.agent.runtime.MPlayRecorderFactory")
-    println("The loaded class $clazz - ${clazz.classLoader}")
+    println("Testing the injected class access: loaded class $clazz - loader=${clazz.classLoader}")
+    println()
 
     val r = SmokeTestClass().callMe(42)
-    SmokeTestClass2().callMe2("42")
     require(r == 42)
+
+    val rr = SmokeTestClass2().callMe2("42")
+    require(rr == 42_42L)
 }

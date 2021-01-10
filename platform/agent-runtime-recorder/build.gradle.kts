@@ -9,6 +9,7 @@ plugins {
 dependencies {
     compileOnly(project(":config"))
     compileOnly(project(":agent-runtime"))
+    compileOnly(project(":agent-config"))
 }
 
 java {

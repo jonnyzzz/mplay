@@ -15,7 +15,7 @@ interface MPlayRecorderBuilder : MPlayValuesVisitor {
      * via the [visitInstance]. The [recordingClassName]
      * is the fully qualified name of the class
      */
-    fun visitRecordingClassName(recordingClassName: String)
+    fun visitRecordingClassName(recordingClassName: String) = Unit
 
     /**
      * Visits the class fully qualified name of the configuration
@@ -24,13 +24,13 @@ interface MPlayRecorderBuilder : MPlayValuesVisitor {
      *
      * May not be called if there is no configuration class associated
      */
-    fun visitConfigurationClassName(configurationClassName: String)
+    fun visitConfigurationClassName(configurationClassName: String) = Unit
 
     /**
      * Visits which constructor is executed to create
      * the class, using the JVM method descriptor
      */
-    fun visitConstructorDescriptor(descriptor: String)
+    fun visitConstructorDescriptor(descriptor: String) = Unit
 
     /**
      * Visits the instance of the class that is created
@@ -40,7 +40,7 @@ interface MPlayRecorderBuilder : MPlayValuesVisitor {
      * is probably not safe to use this instance methods
      * directly in the visitor.
      */
-    fun visitInstance(instance: Any)
+    fun visitInstance(instance: Any) = Unit
 
     /**
      * Marks that all constructor parameters were send.

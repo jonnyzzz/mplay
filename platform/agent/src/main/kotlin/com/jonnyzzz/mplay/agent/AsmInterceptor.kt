@@ -16,8 +16,6 @@ interface ClassInterceptor {
 fun buildClassInterceptor(config: AgentConfig): ClassInterceptor {
     return object : ClassInterceptor {
         override fun intercept(className: String, data: ByteArray): ByteArray? {
-            println("MPlay instrumentation checking $className")
-
             var patched = data
             for (open in config.classesToOpenMethods) {
                 if (open.classNameToIntercept == className) {
@@ -33,10 +31,7 @@ fun buildClassInterceptor(config: AgentConfig): ClassInterceptor {
 
             return when {
                 patched.contentEquals(data) -> null
-                else -> {
-                    println("MPlay instrumented $className")
-                    patched
-                }
+                else -> patched
             }
         }
     }
