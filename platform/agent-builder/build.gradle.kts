@@ -1,3 +1,4 @@
+@file:Suppress("UnstableApiUsage", "HasPlatformType")
 
 plugins {
     kotlin("jvm")
@@ -36,7 +37,7 @@ dependencies {
 
     testImplementation("junit:junit:4.12")
 
-    agentJar(project(path = ":agent", configuration = "shadow"))
+    agentJar(project(path = ":agent", configuration = "bundle"))
 }
 
 java {

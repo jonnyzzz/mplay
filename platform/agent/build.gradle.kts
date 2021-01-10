@@ -1,3 +1,5 @@
+@file:Suppress("HasPlatformType")
+
 plugins {
     kotlin("jvm")
     id("com.github.johnrengelman.shadow")
@@ -16,14 +18,6 @@ dependencies {
 }
 
 tasks.shadowJar.configure {
-    manifest {
-        attributes(
-            "Premain-Class" to "com.jonnyzzz.mplay.agent.MPlayAgent",
-            "Can-Redefine-Classes" to false,
-            "Can-Set-Native-Method-Prefix" to false
-        )
-    }
-
     exclude("**module-info.class",
         "META-INF/INDEX.LIST",
         "META-INF/*.SF",
@@ -45,23 +39,26 @@ tasks.shadowJar.configure {
     )
 }
 
-sourceSets {
-    val smoke1 by sourceSets.creating
+val bundle by configurations.creating
+val bundleJar by tasks.creating(Jar::class.java) {
+    dependsOn(tasks.shadowJar)
+    dependsOn(tasks.classes)
 
-    @Suppress("UNUSED_VARIABLE")
-    val runSmoke1 by tasks.creating(JavaExec::class.java) {
-        group = "verification"
-        dependsOn(tasks.shadowJar)
-        dependsOn(tasks.classes)
-        dependsOn(smoke1.classesTaskName)
-        mainClass.set("com.jonnyzzz.mplay.agent.smoke1.Smoke1MainKt")
-        doFirst {
-            val fakeConfigFile = file("src/smoke1/agent-config.json")
-            classpath = smoke1.runtimeClasspath
-            enableAssertions = true
-            jvmArgs = listOf("-javaagent:${tasks.shadowJar.get().archiveFile.get().asFile}=config=${fakeConfigFile.canonicalFile}")
-        }
+    archiveBaseName.set("mplay-agent-bundle")
+
+    from({ zipTree(tasks.shadowJar.map { it.archiveFile }.get())})
+
+    manifest {
+        attributes(
+            "Premain-Class" to "com.jonnyzzz.mplay.agent.MPlayAgent",
+            "Can-Redefine-Classes" to false,
+            "Can-Set-Native-Method-Prefix" to false
+        )
     }
+}
+
+artifacts.add(bundle.name, bundleJar.archiveFile) {
+    builtBy(bundleJar)
 }
 
 val versionRoot = File(buildDir, "version")
