@@ -20,13 +20,13 @@
     "methodsToRecord": [{
       "methodRef": {
         "methodName": "callMe2",
-        "descriptor": "(Ljava/lang/String;)J"
+        "descriptor": "(Ljava/lang/String;Ljava/lang/Object;)J"
       }
     }],
     "constructorsToIntercept": [{
       "methodRef": {
         "methodName": "<init>",
-        "descriptor": "()V"
+        "descriptor": "(Ljava/util/function/Consumer;)V"
       }
     }]
   }],

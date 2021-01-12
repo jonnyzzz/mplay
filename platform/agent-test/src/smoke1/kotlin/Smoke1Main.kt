@@ -1,6 +1,7 @@
 package com.jonnyzzz.mplay.agent.smoke1
 
 import java.io.File
+import java.util.function.Consumer
 
 class SmokeTestClass {
     fun callMe(x: Int) : Int {
@@ -9,9 +10,12 @@ class SmokeTestClass {
     }
 }
 
-class SmokeTestClass2 {
-    fun callMe2(x: String) : Long {
-        println("callMe($x)")
+class SuperDuper
+
+class SmokeTestClass2<W>(val c: Consumer<W>) {
+    fun callMe2(x: String, w: W): Long {
+        println("callMe2($x)$w")
+        c.accept(w)
         return 42_42
     }
 }
@@ -34,6 +38,6 @@ fun main() {
     val r = SmokeTestClass().callMe(42)
     require(r == 42)
 
-    val rr = SmokeTestClass2().callMe2("42")
+    val rr = SmokeTestClass2<SuperDuper> { }.callMe2("42", SuperDuper())
     require(rr == 42_42L)
 }

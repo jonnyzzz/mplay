@@ -45,8 +45,20 @@ class RecorderBuilderImpl(
 
         //TODO: we need metadata to create configuration class
         if (configClassName != null) {
-            val configClass = classloaders.loadConfigFor(instance, configClassName)
-            println("MPlay. Created config class ${configClass.name} for $recordingClassName")
+            val configClass = try {
+                classloaders.loadConfigFor(instance, configClassName)
+            } catch (t: Throwable) {
+                throw Error("Failed to load MPlay configuration class $configClassName. ${t.message}", t)
+            }
+            println("MPlay. Loaded config class ${configClass.name} for $recordingClassName")
+
+            val constructorParameters = collectParameters()
+            val config = configClass.constructors
+                .filter { it.parameterCount == constructorParameters.size }
+                .single() //TODO: we could make it smarter here, moreover
+                .newInstance(*constructorParameters.toTypedArray())
+
+            println("MPlay. Config class ${configClass.name} created")
         }
 
         //TODO: select constructor to call here via the metadata
