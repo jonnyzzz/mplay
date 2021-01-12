@@ -43,6 +43,10 @@ class RecorderBuilderImpl(
             return NopRecorder
         }
 
+        //there should be a map from descriptor to specific constructor parameter or method
+        //this could could be generated somewhere to avoid tons of reflections
+        //on the other hand, method handles can help (or generated dynamic invoke LOL)
+
         //TODO: we need metadata to create configuration class
         if (configClassName != null) {
             val configClass = try {
