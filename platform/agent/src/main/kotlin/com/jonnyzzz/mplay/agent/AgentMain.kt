@@ -52,7 +52,7 @@ object MPlayAgentImpl {
                 .classesToRecordEvents
                 .map { it.classNameToIntercept }
                 .toSortedSet()
-                .joinTo(this, "") { "  $it" }
+                .joinTo(this, "") { "\n  $it" }
             appendLine()
         })
 
