@@ -28,11 +28,26 @@ class AgentIntegrationTest {
 
     @Test
     fun testCheckcastCouldBeNeeded() {
-        class TestClass {
-            fun method(x: String, arr: Array<Long>): Int = "this is $x and ${arr.joinToString()}".hashCode()
+        class TestClass(x: String, arr: Array<Long>) {
+            init {
+                "$x + $arr".hashCode().toString()
+            }
+
+            fun method(x: String, arr: Array<Long>): Long = "this is $x and ${arr.joinToString()}".hashCode().toLong()
         }
 
-        doInterceptTest<TestClass> {
+        doInterceptTest<TestClass>("123", arrayOf(42L)) {
+            method("123", arrayOf(42L))
+        }
+    }
+
+    @Test
+    fun testStackSizeLongReturn() {
+        class TestClass(x: String, arr: Array<Long>) {
+            fun method(x: String, arr: Array<Long>): Long = 1
+        }
+
+        doInterceptTest<TestClass>("123", arrayOf(42L)) {
             method("123", arrayOf(42L))
         }
     }
@@ -142,7 +157,8 @@ class AgentIntegrationTest {
 }
 
 
-inline fun <reified T> doInterceptTest(crossinline testAction: T.() -> Unit) {
+inline fun <reified T> doInterceptTest(vararg constructorArgs: Any,
+                                       crossinline testAction: T.() -> Unit) {
     //the trick is that there will be an actual class, so we could re-load it
     //from the different classloader
     val scope = Consumer<T> { t -> t.testAction() }
@@ -154,8 +170,14 @@ inline fun <reified T> doInterceptTest(crossinline testAction: T.() -> Unit) {
     MPlayRecorderFactory.factory = MPlayRecorderBuilderFactoryImpl()
 
     InstrumentingClassLoader(interceptor).apply {
-        val testClazz = loadClassByName<T>()
-        val testObj = testClazz.getConstructor().newInstance()
+        val testClazz = loadClass(T::class.java.name)
+        require(testClazz !== T::class.java) {
+            "Loaded class $testClazz has the same classloader as ${T::class.java}!"
+        }
+
+        val testObj = testClazz.constructors.single {
+            it.parameterCount == constructorArgs.count()
+        }.newInstance(*constructorArgs)
 
         @Suppress("UNCHECKED_CAST")
         val scopeCopy = loadClass(scope.javaClass.name).getConstructor().newInstance() as Consumer<Any?>

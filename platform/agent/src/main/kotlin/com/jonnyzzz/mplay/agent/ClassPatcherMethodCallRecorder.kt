@@ -145,7 +145,7 @@ class ClassPatcherMethodCallRecorder(
         }
 
         override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-            super.visitMaxs(maxStack + 3, maxLocals)
+            super.visitMaxs(maxStack + 5, maxLocals)
         }
     }
 }

@@ -1,13 +1,5 @@
 package com.jonnyzzz.mplay.agent
 
-inline fun <reified Y> ClassLoader.loadClassByName(): Class<*> {
-    val clazz = loadClass(Y::class.java.name)
-    require(clazz !== Y::class.java) {
-        "Loaded class $clazz has the same classloader as ${Y::class.java}!"
-    }
-    return clazz
-}
-
 class InstrumentingClassLoader(
     private val interceptor: ClassInterceptor,
     private val realLoader: ClassLoader = InstrumentingClassLoader::class.java.classLoader,
