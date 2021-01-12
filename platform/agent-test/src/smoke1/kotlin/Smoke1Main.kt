@@ -27,6 +27,7 @@ fun main() {
 
     //test agent is able to inject the class to the application
     val clazz = Class.forName("com.jonnyzzz.mplay.agent.runtime.MPlayRecorderFactory")
+
     println("Testing the injected class access: loaded class $clazz - loader=${clazz.classLoader}")
     println()
 

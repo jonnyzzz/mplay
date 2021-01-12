@@ -1,39 +1,56 @@
 package com.jonnyzzz.mplay.recorder
 
-import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.runtime.*
-import java.nio.file.Files
-import java.nio.file.Paths
 
-class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
-    private lateinit var agentConfig: AgentConfig
-    private lateinit var rawAgentArgs: Map<String, String>
-    private lateinit var targetReport: MethodCallsWriterPaths
+class RecorderBuilderImpl(
+    private val classloaders: RecorderConfigLoader
+) : ParametersToListVisitor(), MPlayRecorderBuilder {
+    private var recordingClassName: String? = null
+    private var configurationClassName: String? = null
+    private var constructorDescriptor: String? = null
+    private var instance: Any? = null
 
-    override fun setConfig(rawAgentArgs: Map<String, String>, config: AgentConfig) {
-        this.agentConfig = config
-        this.rawAgentArgs = rawAgentArgs.toSortedMap()
+    override fun visitRecordingClassName(recordingClassName: String) {
+        this.recordingClassName = recordingClassName
+        super.visitRecordingClassName(recordingClassName)
+    }
 
-        val reportDirKey = "record-dir"
-        val reportDir = rawAgentArgs[reportDirKey] ?: error("Failed to get '$reportDirKey' parameter from MPlay Javaagent args")
-        val reportDirPath = Paths.get(reportDir).toAbsolutePath()
+    override fun visitConfigurationClassName(configurationClassName: String) {
+        this.configurationClassName = configurationClassName
+        super.visitConfigurationClassName(configurationClassName)
+    }
 
-        if (!Files.isDirectory(reportDirPath)) {
-            Files.createDirectories(reportDirPath)
+    override fun visitConstructorDescriptor(descriptor: String) {
+        this.constructorDescriptor = descriptor
+        super.visitConstructorDescriptor(descriptor)
+    }
+
+    override fun visitInstance(instance: Any) {
+        this.instance = instance
+        super.visitInstance(instance)
+    }
+
+    override fun visitConstructorParametersComplete(): MPlayRecorder {
+        val recordingClassName = recordingClassName ?: error("recording class name is not set")
+        val configClassName = configurationClassName
+        val constructorDescriptor = constructorDescriptor ?: error("constructor is not set")
+        val instance = instance ?: error("instance is not set")
+        val instanceClass = instance.javaClass
+        val instanceClassName = instanceClass.name
+
+        if (instanceClassName != recordingClassName) {
+            println("MPlay. Recording events for $recordingClassName but has $instanceClassName is ignored")
+            return NopRecorder
         }
 
-        targetReport = MethodCallsWriterPaths(reportDirPath)
-        println("MPlay Recorder is set to use $targetReport for reports")
-        super.setConfig(rawAgentArgs, config)
-    }
+        //TODO: we need metadata to create configuration class
+        if (configClassName != null) {
+            val configClass = classloaders.loadConfigFor(instance, configClassName)
+            println("MPlay. Created config class ${configClass.name} for $recordingClassName")
+        }
 
-    override fun newRecorderBuilderFactory(): RecorderBuilderImpl {
-        return RecorderBuilderImpl()
-    }
-}
+        //TODO: select constructor to call here via the metadata
 
-class RecorderBuilderImpl : MPlayRecorderBuilder {
-    override fun visitConstructorParametersComplete(): RecorderImpl {
         return RecorderImpl()
     }
 }

@@ -45,12 +45,21 @@ val runtimeRecorderClasspath by tasks.creating {
 
 sourceSets {
     val smoke1 by sourceSets.creating
+    val smoke1config by sourceSets.creating {
+        compileClasspath += smoke1.output
+        runtimeClasspath += smoke1.output
+    }
+
+    dependencies {
+        smoke1config.implementationConfigurationName(project(":config"))
+    }
 
     @Suppress("UNUSED_VARIABLE")
     val runSmoke1 by tasks.creating(JavaExec::class.java) {
         group = "verification"
         dependsOn(configurations.named(sourceSets["test"].runtimeClasspathConfigurationName))
         dependsOn(smoke1.classesTaskName)
+        dependsOn(smoke1config.classesTaskName)
         dependsOn(runtimeAgent)
         dependsOn(runtimeRecorderClasspath)
         mainClass.set("com.jonnyzzz.mplay.agent.smoke1.Smoke1MainKt")
@@ -60,12 +69,16 @@ sourceSets {
             val recordDir = File(buildDir, "smoke1-record")
             delete(recordDir)
 
+            val configClasspathFile = File(buildDir, "${smoke1config.name}-classpath.txt")
+            configClasspathFile.writeText(smoke1config.runtimeClasspath.joinToString("\n"))
+
             classpath = smoke1.runtimeClasspath
             enableAssertions = true
             jvmArgs = listOf("-javaagent:$agentJar=" +
                     "config=$fakeConfigFile;" +
                     "recorder-classpath=$runtimeRecorderClasspathFile;" +
-                    "record-dir=${recordDir}"
+                    "record-dir=${recordDir};" +
+                    "config-classpath=${configClasspathFile}"
 //                "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
             )
         }

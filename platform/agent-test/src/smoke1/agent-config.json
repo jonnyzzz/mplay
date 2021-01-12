@@ -14,6 +14,21 @@
         "descriptor": "()V"
       }
     }]
+  }, {
+    "classNameToIntercept": "com.jonnyzzz.mplay.agent.smoke1.SmokeTestClass2",
+    "configClassName" : "com.jonnyzzz.mplay.agent.smoke1confg.SmokeTestClass2Config",
+    "methodsToRecord": [{
+      "methodRef": {
+        "methodName": "callMe2",
+        "descriptor": "(Ljava/lang/String;)J"
+      }
+    }],
+    "constructorsToIntercept": [{
+      "methodRef": {
+        "methodName": "<init>",
+        "descriptor": "()V"
+      }
+    }]
   }],
   "classesToOpenMethods": []
 }
