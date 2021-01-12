@@ -6,8 +6,8 @@ import com.jonnyzzz.mplay.agent.config.MethodRef
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import org.objectweb.asm.commons.AdviceAdapter
-import java.io.File
 import kotlin.math.max
 
 class ClassPatcherRecorderInit(
@@ -76,13 +76,16 @@ class ClassPatcherRecorderInit(
                        dup()
                        loadArg(idx)
                        visitMethodInsn(context.mplayVisitMethod(type))
+                       if (type.sort == Type.OBJECT || type.sort == Type.ARRAY) {
+                           checkCast(type)
+                       }
                        storeArg(idx)
                    }
 
                    visitMethodInsn(context.mplayRecorderBuilderVisitComplete)
                    loadThis()
                    swap()
-                   visitFieldInsn(Opcodes.PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
+                   visitFieldInsn(PUTFIELD, jvmClassName, context.mplayFieldName, context.mplayFieldDescriptor)
                }
 
                override fun visitMaxs(maxStack: Int, maxLocals: Int) {

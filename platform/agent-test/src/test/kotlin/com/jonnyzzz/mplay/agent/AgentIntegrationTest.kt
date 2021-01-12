@@ -27,6 +27,17 @@ class AgentIntegrationTest {
     }
 
     @Test
+    fun testCheckcastCouldBeNeeded() {
+        class TestClass {
+            fun method(x: String, arr: Array<Long>): Int = "this is $x and ${arr.joinToString()}".hashCode()
+        }
+
+        doInterceptTest<TestClass> {
+            method("123", arrayOf(42L))
+        }
+    }
+
+    @Test
     fun testInterceptBaseMethods() {
         open class PreBase {
             open fun preB() = 23
@@ -141,7 +152,6 @@ inline fun <reified T> doInterceptTest(crossinline testAction: T.() -> Unit) {
     val interceptor = buildClassInterceptor(agentConfig)
 
     MPlayRecorderFactory.factory = MPlayRecorderBuilderFactoryImpl()
-    MPlayRecorderFactory.agentConfig = agentConfig
 
     InstrumentingClassLoader(interceptor).apply {
         val testClazz = loadClassByName<T>()

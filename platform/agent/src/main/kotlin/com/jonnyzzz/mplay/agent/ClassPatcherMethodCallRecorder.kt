@@ -108,6 +108,9 @@ class ClassPatcherMethodCallRecorder(
                 dup()
                 loadArg(i)
                 visitMethodInsn(context.mplayVisitMethod(argumentType))
+                if (argumentType.sort == Type.OBJECT || argumentType.sort == Type.ARRAY) {
+                    checkCast(argumentType)
+                }
                 storeArg(i)
             }
             dup()
