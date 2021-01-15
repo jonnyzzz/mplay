@@ -29,6 +29,8 @@ val runtimeRecorderFiles by tasks.creating(Sync::class.java) {
 val runtimeRecorderClasspath by tasks.creating {
     dependsOn(runtimeRecorder)
     dependsOn(runtimeRecorderFiles)
+
+    inputs.dir(runtimeRecorderDir)
     outputs.file(runtimeRecorderClasspathFile)
     doFirst {
         //we resolve configuration to make sure the classpath order is the same

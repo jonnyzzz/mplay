@@ -1,10 +1,19 @@
 package com.jonnyzzz.mplay.recorder
 
 import com.jonnyzzz.mplay.agent.runtime.*
+import com.jonnyzzz.mplay.recorder.json.*
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+
+private val instanceIds = AtomicInteger()
 
 class RecorderBuilderImpl(
-    private val classloaders: RecorderConfigLoader
-) : ParametersToListVisitor(), MPlayRecorderBuilder {
+    private val classloaders: RecorderConfigLoader,
+    private val perThreadWriter: PerThreadWriter,
+
+    private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
+    private val paramsToListVisitor: ParametersToListVisitor = ParametersToListVisitor(paramsToJsonVisitor)
+) : MPlayRecorderBuilder, MPlayValuesVisitor by paramsToListVisitor {
     private var recordingClassName: String? = null
     private var configurationClassName: String? = null
     private var constructorDescriptor: String? = null
@@ -56,7 +65,7 @@ class RecorderBuilderImpl(
             }
             println("MPlay. Loaded config class ${configClass.name} for $recordingClassName")
 
-            val constructorParameters = collectParameters()
+            val constructorParameters = paramsToListVisitor.collectParameters()
             val config = configClass.constructors
                 .filter { it.parameterCount == constructorParameters.size }
                 .single() //TODO: we could make it smarter here, moreover
@@ -65,25 +74,81 @@ class RecorderBuilderImpl(
             println("MPlay. Config class ${configClass.name} created")
         }
 
+        val call = ConstructorCallMessage(
+            instanceId = instanceIds.incrementAndGet(),
+            recordingClass = recordingClassName,
+            descriptor = constructorDescriptor,
+            parameters = paramsToJsonVisitor.toJson() //TODO: configuration may affect the way parameres are recorded
+        )
+
+        perThreadWriter.writerForCurrentThread().writeConstructorCall(call)
+
         //TODO: select constructor to call here via the metadata
 
-        return RecorderImpl()
+        return RecorderImpl(perThreadWriter, call.instanceId)
     }
 }
 
-class RecorderImpl : MPlayRecorder {
+class RecorderImpl(
+    private val perThreadWriter: PerThreadWriter,
+    private val instanceId: Int,
+) : MPlayRecorder {
     override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String): MPlayMethodCallRecorder {
-        return MethodCallRecorderImpl()
+        return MethodCallRecorderImpl(
+            perThreadWriter.writerForCurrentThread(),
+            instanceId,
+            methodName,
+            jvmMethodDescriptor,
+        )
     }
 }
 
-class MethodCallRecorderImpl : MPlayMethodCallRecorder {
+private val callIds = AtomicLong()
+
+class MethodCallRecorderImpl(
+    private val perThreadWriter: JsonLogWriter,
+    private val instanceId: Int,
+    private val methodName: String,
+    private val descriptor: String,
+
+    private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
+) : MPlayMethodCallRecorder, MPlayValuesVisitor by paramsToJsonVisitor {
     override fun visitParametersComplete(): MethodResultRecorderImpl {
-        return MethodResultRecorderImpl()
+        val call = MethodCallMessage(
+            callId = callIds.incrementAndGet(),
+            instanceId = instanceId,
+            name = methodName,
+            descriptor = descriptor,
+            parameters = paramsToJsonVisitor.toJson(),
+        )
+        perThreadWriter.writeMethodCall(call)
+
+        return MethodResultRecorderImpl(perThreadWriter, call.callId)
     }
 }
 
-class MethodResultRecorderImpl : MPlayMethodResultRecorder {
+class MethodResultRecorderImpl(
+    private val perThreadWriter: JsonLogWriter,
+    private val callId: Long,
+
+    private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
+    private val exceptionToValueVisitor: ExceptionToValueVisitor = ExceptionToValueVisitor(),
+) : MPlayMethodResultRecorder,
+    MPlayValuesVisitor by paramsToJsonVisitor,
+    MPlayExceptionVisitor by exceptionToValueVisitor {
+
+    private fun nanoTime() = System.nanoTime()
+    private val startTime = nanoTime()
+
     override fun commit() {
+        val duration = (nanoTime() - startTime).coerceAtLeast(0)
+        perThreadWriter.writeMethodResult(
+            MethodCallResult(
+                callId = callId,
+                durationNanos = duration,
+                result = paramsToJsonVisitor.toJson().takeIf { it.size() > 0 },
+                exception = exceptionToValueVisitor.toJson()?.let { ExceptionMessage(it.javaClass.name) },
+            )
+        )
     }
 }

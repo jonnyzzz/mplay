@@ -9,8 +9,8 @@ import java.nio.file.Paths
 class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
     private lateinit var agentConfig: AgentConfig
     private lateinit var rawAgentArgs: Map<String, String>
-    private lateinit var targetReport: MethodCallsWriterPaths
     private lateinit var classloaders: RecorderConfigLoader
+    private lateinit var writer: PerThreadWriter
 
     override fun setConfig(rawAgentArgs: Map<String, String>, config: AgentConfig) {
         this.agentConfig = config
@@ -26,8 +26,15 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
             Files.createDirectories(reportDirPath)
         }
 
-        targetReport = MethodCallsWriterPaths(reportDirPath)
-        println("MPlay Recorder is set to use $targetReport for reports")
+        println("MPlay Recorder is set to use $reportDirPath for reports")
+
+        writer = PerThreadWriter(reportDirPath, ".mplay")
+        Runtime.getRuntime().addShutdownHook(object: Thread("MPlay shutdown thread") {
+            override fun run() {
+                println("MPlay. Running shutdown hook")
+                runCatching { writer.close() }
+            }
+        })
 
         val classpathFromParam = rawAgentArgs["config-classpath"]?.let { File(it).readText() }?.split("\n") ?: listOf()
         val classpath = (classpathFromParam + agentConfig.configClasspath)
@@ -39,5 +46,5 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
         super.setConfig(rawAgentArgs, config)
     }
 
-    override fun newRecorderBuilderFactory() = RecorderBuilderImpl(classloaders)
+    override fun newRecorderBuilderFactory() = RecorderBuilderImpl(classloaders, writer)
 }
