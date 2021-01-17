@@ -3,7 +3,7 @@ package com.jonnyzzz.mplay.agent.runtime
 import com.jonnyzzz.mplay.agent.config.AgentConfig
 
 /**
- * The [ServiceLoader] interface of the actual implementation
+ * The [java.util.ServiceLoader] interface of the actual implementation
  * of the MPlay recorder.
  *
  * To provide an extension, implement this interface,
@@ -21,5 +21,10 @@ interface MPlayRecorderBuilderFactory {
     fun setConfig(rawAgentArgs: Map<String, String>,
                   config: AgentConfig) = Unit
 
+    /**
+     * The factory method to create an instance of the
+     * recorder. The object can (but not required to) be
+     * reused between all other objects
+     */
     fun newRecorderBuilderFactory() : MPlayRecorderBuilder
 }

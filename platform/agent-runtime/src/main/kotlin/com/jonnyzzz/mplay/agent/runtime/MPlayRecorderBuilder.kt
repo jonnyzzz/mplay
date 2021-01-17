@@ -6,6 +6,12 @@ package com.jonnyzzz.mplay.agent.runtime
  * [MPlayRecorderFactory] and the builder configuration
  * is executed from every constructor of a class,
  * where the recording is needed
+ *
+ * Usually created from
+ * [MPlayRecorderBuilderFactory.newRecorderBuilderFactory].
+ * This instance can be reused between different objects
+ *
+ * @see MPlayRecorderBuilderFactory.newRecorderBuilderFactory
  */
 interface MPlayRecorderBuilder : MPlayValuesVisitor {
     /**

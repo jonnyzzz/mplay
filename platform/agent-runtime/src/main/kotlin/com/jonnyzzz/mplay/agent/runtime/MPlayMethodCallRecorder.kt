@@ -3,7 +3,13 @@ package com.jonnyzzz.mplay.agent.runtime
 /**
  * An entry point interface to record method and it's parameters.
  * The implementation is also responsible to intercept the parameter
- * values, which are send to the original method
+ * values, which are send to the original method.
+ *
+ * Usually created from
+ * [MPlayRecorder.onMethodEnter] to process
+ * a given method parameters.
+ *
+ * @see MPlayRecorder.onMethodEnter
  */
 interface MPlayMethodCallRecorder : MPlayValuesVisitor {
     /**

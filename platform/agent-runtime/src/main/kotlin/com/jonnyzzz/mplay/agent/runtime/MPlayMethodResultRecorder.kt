@@ -1,5 +1,12 @@
 package com.jonnyzzz.mplay.agent.runtime
 
+/**
+ * Usually created by the [MPlayMethodCallRecorder.visitParametersComplete] call.
+ * This type is used to process the method result (or exception) after the execution
+ * is completed
+ *
+ * @see MPlayMethodCallRecorder.visitParametersComplete
+ */
 interface MPlayMethodResultRecorder : MPlayExceptionVisitor, MPlayValuesVisitor {
     /**
      * Finalizes the method execution.

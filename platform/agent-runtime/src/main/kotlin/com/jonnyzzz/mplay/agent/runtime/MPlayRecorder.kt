@@ -5,6 +5,13 @@ package com.jonnyzzz.mplay.agent.runtime
 /**
  * An instance of that type is injected to the intercepted class,
  * this instance is used to record method activities
+ *
+ * Usually created via
+ * [MPlayRecorderBuilder.visitConstructorParametersComplete].
+ * This instance is cached in the recording type and handles
+ * all method calls
+ *
+ * @see MPlayRecorderBuilder.visitConstructorParametersComplete
  */
 interface MPlayRecorder {
     /**
