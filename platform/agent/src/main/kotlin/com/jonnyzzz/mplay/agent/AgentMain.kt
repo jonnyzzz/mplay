@@ -2,7 +2,7 @@ package com.jonnyzzz.mplay.agent
 
 import com.jonnyzzz.mplay.agent.config.loadAgentConfig
 import com.jonnyzzz.mplay.agent.generated.MPlayVersions
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilder
+import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorderBuilder
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilderFactory
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderFactory
 import java.io.File
@@ -79,11 +79,12 @@ object MPlayAgentImpl {
                     .singleOrNull()
                     ?: error("There are several or nome implementations found for ${MPlayRecorderBuilderFactory::class.java.simpleName} ")
 
-                factory.setConfig(args, agentConfig)
+                factory.visitAgentConfig(agentConfig)
+                factory.visitAgentParameters(args)
                 factory
             }
 
-            override fun newRecorderBuilderFactory(): MPlayRecorderBuilder = factory.newRecorderBuilderFactory()
+            override fun newRecorderBuilderFactory(): MPlayInstanceRecorderBuilder = factory.newRecorderBuilderFactory()
         }
 
         instrumentation.addTransformer(object : ClassFileTransformer {

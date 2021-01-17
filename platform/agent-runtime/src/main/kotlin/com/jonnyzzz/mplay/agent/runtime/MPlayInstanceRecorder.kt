@@ -7,21 +7,22 @@ package com.jonnyzzz.mplay.agent.runtime
  * this instance is used to record method activities
  *
  * Usually created via
- * [MPlayRecorderBuilder.visitConstructorParametersComplete].
+ * [MPlayConstructorRecorder.newInstanceRecorder].
  * This instance is cached in the recording type and handles
  * all method calls
  *
- * @see MPlayRecorderBuilder.visitConstructorParametersComplete
+ * @see MPlayConstructorRecorder.newInstanceRecorder
  */
-interface MPlayRecorder {
+interface MPlayInstanceRecorder {
     /**
-     * Executed on every recorded method call to mark
-     * the method execution start
+     * Executed on every recorded method call on the original class,
+     * to get the actual implementation of the method recorder.
+     *
      * @param methodName the method name that is running
-     * @param jvmMethodDescriptor the JVM non-generic method descriptor (parameter types + return type)
+     * @param descriptor the JVM non-generic method descriptor (parameter types + return type)
      */
-    fun onMethodEnter(
+    fun newMethodRecorder(
         methodName: String,
-        jvmMethodDescriptor: String,
+        descriptor: String,
     ): MPlayMethodCallRecorder
 }

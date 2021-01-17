@@ -115,32 +115,44 @@ class ClassPatcherMethodCallRecorder(
             }
             dup()
             visitMethodInsn(context.methodCallParametersComplete)
-            methodRecorderLocalId = newLocal(Type.getType(context.methodCallParametersComplete.returnType))
+            methodRecorderLocalId = newLocal(context.methodCallParametersCompleteType)
             mv.visitVarInsn(ASTORE, methodRecorderLocalId)
         }
 
         override fun onMethodExit(opcode: Int) {
             super.onMethodExit(opcode)
 
-            if (ATHROW == opcode) {
+            mv.visitVarInsn(ALOAD, methodRecorderLocalId)
+            visitMethodInsn(context.methodCallCompleted)
+
+            if (opcode != RETURN) {
                 dup()
-                mv.visitVarInsn(ALOAD, methodRecorderLocalId)
-                swap()
-                visitMethodInsn(context.visitException)
-            } else if (opcode == LRETURN || opcode == DRETURN) {
-                dup2()
-                mv.visitVarInsn(ALOAD, methodRecorderLocalId)
-                visitInsn(DUP_X2)
-                visitInsn(POP)
-                visitMethodInsn(context.mplayVisitMethod(returnType))
-            } else if (opcode != RETURN) {
-                dup()
-                mv.visitVarInsn(ALOAD, methodRecorderLocalId)
-                swap()
-                visitMethodInsn(context.mplayVisitMethod(returnType))
+                val recorderType = Type.getType(context.methodCallCompleted.returnType)
+                val resultOnStack = when (opcode) {
+                    ATHROW -> Type.getType(Throwable::class.java)
+                    else -> returnType
+                }
+
+                // stack: <ret|exception:1 or 2 slots>, recorder, recorder
+                swap(resultOnStack, Type.DOUBLE_TYPE)
+                // stack: recorder, recorder, <ret|exception:0, 1 or 2 slots>
+
+                if (ATHROW == opcode) {
+                    visitMethodInsn(context.visitException)
+                } else if (opcode == LRETURN || opcode == DRETURN) {
+                    visitMethodInsn(context.mplayVisitMethod(returnType))
+                } else if (opcode != RETURN) {
+                    visitMethodInsn(context.mplayVisitMethod(returnType))
+                    if (returnType.sort == Type.OBJECT || returnType.sort == Type.ARRAY) {
+                        checkCast(returnType)
+                    }
+                }
+
+                // stack: recorder, <patched ret|exception:0, 1 or 2 slots>
+                swap(recorderType, resultOnStack)
+                // stack: <patched ret|exception:0, 1 or 2 slots>, recorder
             }
 
-            mv.visitVarInsn(ALOAD, methodRecorderLocalId)
             mv.visitMethodInsn(context.methodCallCommit)
         }
 

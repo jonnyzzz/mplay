@@ -10,8 +10,8 @@ import com.jonnyzzz.mplay.agent.runtime.*
 open class MPlayMethodCallRecorderImpl(
     val recorder: MPlayRecorderImpl,
     val methodName: String,
-    val methodDescriptor: String
-) : MPlayValuesVisitor, MPlayExceptionVisitor, MPlayMethodResultRecorder, MPlayMethodCallRecorder {
+) : MPlayValuesVisitor, MPlayExceptionVisitor, MPlayMethodResultRecorder, MPlayMethodCallRecorder,
+    MPlayRunningMethodRecorder {
     /**
      * Each of the `visit*` methods is used from the generated
      * bytecode to send and update every method arguments.
@@ -19,21 +19,32 @@ open class MPlayMethodCallRecorderImpl(
      * but there are scenarios where it would make sense to
      * return a different value for a callback parameters
      */
-    override fun visitBoolean(v: Boolean): Boolean = v.apply { println("${recorder.recordingClassName}#$methodName boolean $v") }
+    override fun visitBoolean(v: Boolean): Boolean =
+        v.apply { println("${recorder.recordingClassName}#$methodName boolean $v") }
+
     override fun visitChar(v: Char): Char = v.apply { println("${recorder.recordingClassName}#$methodName char $v") }
     override fun visitByte(v: Byte): Byte = v.apply { println("${recorder.recordingClassName}#$methodName byte $v") }
-    override fun visitShort(v: Short): Short = v.apply { println("${recorder.recordingClassName}#$methodName short $v") }
+    override fun visitShort(v: Short): Short =
+        v.apply { println("${recorder.recordingClassName}#$methodName short $v") }
+
     override fun visitInt(v: Int): Int = v.apply { println("${recorder.recordingClassName}#$methodName int $v") }
     override fun visitLong(v: Long): Long = v.apply { println("${recorder.recordingClassName}#$methodName long $v") }
-    override fun visitFloat(v: Float): Float = v.apply { println("${recorder.recordingClassName}#$methodName float $v") }
-    override fun visitDouble(v: Double): Double = v.apply { println("${recorder.recordingClassName}#$methodName double $v") }
-    override fun visitObject(v: Any?): Any? = v.apply { println("${recorder.recordingClassName}#$methodName object $v") }
-    override fun visitException(v: Throwable): Throwable = v.apply { println("${recorder.recordingClassName}#$methodName exception $v") }
+    override fun visitFloat(v: Float): Float =
+        v.apply { println("${recorder.recordingClassName}#$methodName float $v") }
+
+    override fun visitDouble(v: Double): Double =
+        v.apply { println("${recorder.recordingClassName}#$methodName double $v") }
+
+    override fun visitObject(v: Any?): Any? =
+        v.apply { println("${recorder.recordingClassName}#$methodName object $v") }
+
+    override fun visitException(v: Throwable): Throwable =
+        v.apply { println("${recorder.recordingClassName}#$methodName exception $v") }
 
     /**
      * An additional callback to notify all method call parameters were reported
      */
-    override fun visitParametersComplete() : MPlayMethodCallRecorderImpl {
+    override fun newRunningMethodRecorder(): MPlayMethodCallRecorderImpl {
         println("${recorder.recordingClassName}#$methodName parameters visited")
         return this
     }
@@ -41,38 +52,34 @@ open class MPlayMethodCallRecorderImpl(
     override fun commit() {
         println("${recorder.recordingClassName}#$methodName commitWithResult")
     }
+
+    override fun newMethodResultRecorder() = this
 }
 
 class MPlayRecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
     override fun newRecorderBuilderFactory() = MPlayRecorderImpl()
 }
 
-class MPlayRecorderImpl(
-) : MPlayRecorder, MPlayRecorderBuilder {
-    lateinit var recordingClassName : String
+class MPlayRecorderImpl : MPlayInstanceRecorder, MPlayConstructorRecorder, MPlayInstanceRecorderBuilder {
+    lateinit var recordingClassName: String
 
     override fun visitRecordingClassName(recordingClassName: String) {
         this.recordingClassName = recordingClassName.substringAfterLast(".")
-    }
-
-    override fun visitConfigurationClassName(configurationClassName: String) {
-    }
-
-    override fun visitConstructorDescriptor(descriptor: String) {
-        println("MPlayRecorder[$recordingClassName] created with $descriptor")
     }
 
     override fun visitInstance(instance: Any) {
         println("MPlayRecorder[$recordingClassName] class instance: $instance")
     }
 
-    override fun visitConstructorParametersComplete(): MPlayRecorder {
-        println("MPlayRecorder[$recordingClassName] parameters completed")
+    override fun newInstanceRecorder() = this
+
+    override fun newConstructorRecorder(descriptor: String): MPlayConstructorRecorder {
+        println("MPlayRecorder[$recordingClassName] created with $descriptor")
         return this
     }
 
-    override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String) : MPlayMethodCallRecorder {
-        println("MPlayRecorder[$recordingClassName] on method: $methodName $jvmMethodDescriptor")
-        return MPlayMethodCallRecorderImpl(this, methodName, jvmMethodDescriptor)
+    override fun newMethodRecorder(methodName: String, descriptor: String): MPlayMethodCallRecorder {
+        println("MPlayRecorder[$recordingClassName] on method: $methodName $descriptor")
+        return MPlayMethodCallRecorderImpl(this, methodName)
     }
 }

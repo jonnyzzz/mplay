@@ -7,21 +7,23 @@ class ClassPatcherContext {
     val mplayNewRecorderBuilder = staticMethod<MPlayRecorderFactory>(MPlayRecorderFactory::newRecorderBuilder)
 
     @Suppress("PrivatePropertyName", "unused")
-    private val test_mplayNewRecorderBuilder = require(mplayNewRecorderBuilder.returnType == MPlayRecorderBuilder::class.java)
+    private val test_mplayNewRecorderBuilder = require(mplayNewRecorderBuilder.returnType == MPlayInstanceRecorderBuilder::class.java)
 
-    val mplayRecorderBuilderVisitRecordingClassName = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitRecordingClassName)
-    val mplayRecorderBuilderVisitConfigClassName = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConfigurationClassName)
-    val mplayRecorderBuilderVisitInstance = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitInstance)
-    val mplayRecorderBuilderVisitDescriptor = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorDescriptor)
-    val mplayRecorderBuilderVisitComplete = method<MPlayRecorderBuilder>(MPlayRecorderBuilder::visitConstructorParametersComplete)
+    val mplayRecorderBuilderVisitRecordingClassName = method<MPlayInstanceRecorderBuilder>(MPlayInstanceRecorderBuilder::visitRecordingClassName)
+    val mplayRecorderBuilderVisitConfigClassName = method<MPlayInstanceRecorderBuilder>(MPlayInstanceRecorderBuilder::visitConfigurationClassName)
+    val mplayNewConstructorRecorder = method<MPlayInstanceRecorderBuilder>(MPlayInstanceRecorderBuilder::newConstructorRecorder)
+
+
+    val mplayRecorderBuilderVisitInstance = method<MPlayConstructorRecorder>(MPlayConstructorRecorder::visitInstance)
+    val mplayRecorderBuilderVisitComplete = method<MPlayConstructorRecorder>(MPlayConstructorRecorder::newInstanceRecorder)
 
     @Suppress("PrivatePropertyName", "unused")
-    private val test_mplayRecorderBuilderVisitComplete = require(mplayRecorderBuilderVisitComplete.returnType == MPlayRecorder::class.java)
+    private val test_mplayRecorderBuilderVisitComplete = require(mplayRecorderBuilderVisitComplete.returnType == MPlayInstanceRecorder::class.java)
 
     val mplayFieldName = "______jonnyzzzMPlayRecorder" // we use unicode symbols to avoid a clash
-    val mplayFieldDescriptor = Type.getDescriptor(MPlayRecorder::class.java)
+    val mplayFieldDescriptor = Type.getDescriptor(MPlayInstanceRecorder::class.java)
 
-    val mplayRecorderOnEnter = method<MPlayRecorder>(MPlayRecorder::onMethodEnter)
+    val mplayRecorderOnEnter = method<MPlayInstanceRecorder>(MPlayInstanceRecorder::newMethodRecorder)
 
     private val typeSortToVisitMethods = mapOf(
         Type.BOOLEAN to  method<MPlayValuesVisitor>(MPlayValuesVisitor::visitBoolean),
@@ -39,6 +41,10 @@ class ClassPatcherContext {
 
     fun mplayVisitMethod(type: Type): MethodCallInfo = typeSortToVisitMethods[type.sort] ?: error("Unexpected type: $type")
 
-    val methodCallParametersComplete = method<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::visitParametersComplete)
+    val methodCallParametersComplete = method<MPlayMethodCallRecorder>(MPlayMethodCallRecorder::newRunningMethodRecorder)
+    val methodCallParametersCompleteType = Type.getType(MPlayRunningMethodRecorder::class.java)
+
+    val methodCallCompleted = method<MPlayRunningMethodRecorder>(MPlayRunningMethodRecorder::newMethodResultRecorder)
+
     val methodCallCommit = method<MPlayMethodResultRecorder>(MPlayMethodResultRecorder::commit)
 }

@@ -10,7 +10,7 @@ object MPlayRecorderFactory {
      * This method is executed in bytecode
      */
     @JvmStatic
-    fun newRecorderBuilder(): MPlayRecorderBuilder {
+    fun newRecorderBuilder(): MPlayInstanceRecorderBuilder {
         return factory.newRecorderBuilderFactory()
     }
 }

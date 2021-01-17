@@ -2,26 +2,26 @@ package com.jonnyzzz.mplay.agent.runtime
 
 /**
  * An entry point interface to record method and it's parameters.
- * The implementation is also responsible to intercept the parameter
+ *
+ * The implementation can also replace original parameter
  * values, which are send to the original method.
  *
  * Usually created from
- * [MPlayRecorder.onMethodEnter] to process
- * a given method parameters.
+ * [MPlayInstanceRecorder.newMethodRecorder] to
+ * record a given method call
  *
- * @see MPlayRecorder.onMethodEnter
+ * @see MPlayInstanceRecorder.newMethodRecorder
  */
 interface MPlayMethodCallRecorder : MPlayValuesVisitor {
     /**
-     * Marks that all parameters were send. Before calling this
-     * method, the implementation calls the the respective
-     * `visit*` methods from [MPlayValuesVisitor] to pass
-     * all parameter values in the order of parameters in the
-     * JVM metadata.
+     * Before calling this method, the implementation calls
+     * the the respective `visit*` methods from [MPlayValuesVisitor]
+     * to pass all parameter values in the order of parameters in the
+     * JVM metadata. The implementation may also replace the original
+     * parameter values.
      *
-     * Once the method is executed successfully or with an exception,
-     * the implementation calls [MPlayMethodResultRecorder.commit]
-     * to complete the method execution recording
+     * This method creates the [MPlayMethodResultRecorder] just before
+     * the original method is started
      */
-    fun visitParametersComplete(): MPlayMethodResultRecorder
+    fun newRunningMethodRecorder(): MPlayRunningMethodRecorder
 }
