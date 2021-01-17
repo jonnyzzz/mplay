@@ -9,15 +9,22 @@ class MethodResultRecorderImpl(
 
     private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
     private val exceptionToValueVisitor: ExceptionToValueVisitor = ExceptionToValueVisitor(),
-) : MPlayMethodResultRecorder,
+) : MPlayRunningMethodRecorder,
+    MPlayMethodResultRecorder,
     MPlayValuesVisitor by paramsToJsonVisitor,
     MPlayExceptionVisitor by exceptionToValueVisitor {
 
     private fun nanoTime() = System.nanoTime()
     private val startTime = nanoTime()
+    private var finishTime: Long = -1
+
+    override fun newMethodResultRecorder(): MPlayMethodResultRecorder {
+        finishTime = nanoTime()
+        return this
+    }
 
     override fun commit() {
-        val duration = (nanoTime() - startTime).coerceAtLeast(0)
+        val duration = (finishTime - startTime).coerceAtLeast(0)
         perThreadWriter.writeMethodResult(
             MethodCallResult(
                 callId = callId,

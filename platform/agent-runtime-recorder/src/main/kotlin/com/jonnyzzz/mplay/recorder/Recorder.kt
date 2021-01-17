@@ -1,18 +1,18 @@
 package com.jonnyzzz.mplay.recorder
 
 import com.jonnyzzz.mplay.agent.runtime.MPlayMethodCallRecorder
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
+import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
 
 class RecorderImpl(
     private val perThreadWriter: PerThreadWriter,
     private val instanceId: Int,
-) : MPlayRecorder {
-    override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String): MPlayMethodCallRecorder {
+) : MPlayInstanceRecorder {
+    override fun newMethodRecorder(methodName: String, descriptor: String): MPlayMethodCallRecorder {
         return MethodCallRecorderImpl(
             perThreadWriter.writerForCurrentThread(),
             instanceId,
             methodName,
-            jvmMethodDescriptor,
+            descriptor,
         )
     }
 }

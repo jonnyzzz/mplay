@@ -1,8 +1,6 @@
 package com.jonnyzzz.mplay.recorder
 
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilder
-import com.jonnyzzz.mplay.agent.runtime.MPlayValuesVisitor
+import com.jonnyzzz.mplay.agent.runtime.*
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.jonnyzzz.mplay.recorder.json.ConstructorCallMessage
 import com.jonnyzzz.mplay.recorder.json.ParametersToJsonVisitor
@@ -16,7 +14,8 @@ class RecorderBuilderImpl(
 
     private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
     private val paramsToListVisitor: ParametersToListVisitor = ParametersToListVisitor(paramsToJsonVisitor)
-) : MPlayRecorderBuilder, MPlayValuesVisitor by paramsToListVisitor {
+
+) : MPlayInstanceRecorderBuilder, MPlayConstructorRecorder, MPlayConstructorCallRecorder, MPlayValuesVisitor by paramsToListVisitor {
     private var recordingClassName: String? = null
     private var configurationClassName: String? = null
     private var constructorDescriptor: String? = null
@@ -32,9 +31,11 @@ class RecorderBuilderImpl(
         super.visitConfigurationClassName(configurationClassName)
     }
 
-    override fun visitConstructorDescriptor(descriptor: String) {
-        this.constructorDescriptor = descriptor
-        super.visitConstructorDescriptor(descriptor)
+    override fun newConstructorRecorder() = this
+
+    override fun newConstructorCallRecorder(descriptor: String): MPlayConstructorCallRecorder {
+        constructorDescriptor = descriptor
+        return this
     }
 
     override fun visitInstance(instance: Any) {
@@ -42,7 +43,7 @@ class RecorderBuilderImpl(
         super.visitInstance(instance)
     }
 
-    override fun visitConstructorParametersComplete(): MPlayRecorder {
+    override fun newInstanceRecorder(): MPlayInstanceRecorder {
         val recordingClassName = recordingClassName ?: error("recording class name is not set")
         val configClassName = configurationClassName
         val constructorDescriptor = constructorDescriptor ?: error("constructor is not set")

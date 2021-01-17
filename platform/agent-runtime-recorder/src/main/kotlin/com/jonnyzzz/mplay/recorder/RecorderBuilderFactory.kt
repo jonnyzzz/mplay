@@ -9,13 +9,17 @@ import java.nio.file.Paths
 class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
     private lateinit var agentConfig: AgentConfig
     private lateinit var rawAgentArgs: Map<String, String>
-    private lateinit var classloaders: RecorderConfigLoader
-    private lateinit var writer: PerThreadWriter
 
-    override fun setConfig(rawAgentArgs: Map<String, String>, config: AgentConfig) {
+    override fun visitAgentConfig(config: AgentConfig) {
+        super.visitAgentConfig(config)
         this.agentConfig = config
-        this.rawAgentArgs = rawAgentArgs.toSortedMap()
+    }
 
+    override fun visitAgentParameters(agentParams: Map<String, String>) {
+        this.rawAgentArgs = agentParams.toSortedMap()
+    }
+
+    private val config = lazy {
         val reportDirKey = "record-dir"
         val reportDir = rawAgentArgs[reportDirKey]
             ?: error("Failed to get '$reportDirKey' parameter from MPlay Javaagent args")
@@ -28,7 +32,7 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
 
         println("MPlay Recorder is set to use $reportDirPath for reports")
 
-        writer = PerThreadWriter(reportDirPath, ".mplay")
+        val writer = PerThreadWriter(reportDirPath, ".mplay")
         Runtime.getRuntime().addShutdownHook(object: Thread("MPlay shutdown thread") {
             override fun run() {
                 println("MPlay. Running shutdown hook")
@@ -41,10 +45,13 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
             .mapNotNull {
                 runCatching { File(it).toURI().toURL() }.getOrNull()
             }.toTypedArray()
-        classloaders = RecorderConfigLoader(classpath)
+        val classloaders = RecorderConfigLoader(classpath)
 
-        super.setConfig(rawAgentArgs, config)
+        classloaders to writer
     }
 
-    override fun newRecorderBuilderFactory() = RecorderBuilderImpl(classloaders, writer)
+    override fun newRecorderBuilderFactory(): RecorderBuilderImpl {
+        val (classloaders, writer) = config.value
+        return RecorderBuilderImpl(classloaders, writer)
+    }
 }

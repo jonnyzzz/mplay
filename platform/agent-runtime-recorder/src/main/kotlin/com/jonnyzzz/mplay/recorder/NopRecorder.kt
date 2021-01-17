@@ -2,10 +2,12 @@ package com.jonnyzzz.mplay.recorder
 
 import com.jonnyzzz.mplay.agent.runtime.MPlayMethodCallRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayMethodResultRecorder
-import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
+import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
+import com.jonnyzzz.mplay.agent.runtime.MPlayRunningMethodRecorder
 
-object NopRecorder : MPlayRecorder, MPlayMethodCallRecorder, MPlayMethodResultRecorder {
-    override fun visitParametersComplete() = this
+object NopRecorder : MPlayInstanceRecorder, MPlayRunningMethodRecorder, MPlayMethodCallRecorder, MPlayMethodResultRecorder {
+    override fun newRunningMethodRecorder() = this
+    override fun newMethodResultRecorder() = this
     override fun commit() = Unit
-    override fun onMethodEnter(methodName: String, jvmMethodDescriptor: String) = this
+    override fun newMethodRecorder(methodName: String, descriptor: String) = this
 }

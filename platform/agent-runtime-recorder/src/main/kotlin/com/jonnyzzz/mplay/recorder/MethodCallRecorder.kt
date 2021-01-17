@@ -17,7 +17,7 @@ class MethodCallRecorderImpl(
 
     private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
 ) : MPlayMethodCallRecorder, MPlayValuesVisitor by paramsToJsonVisitor {
-    override fun visitParametersComplete(): MethodResultRecorderImpl {
+    override fun newRunningMethodRecorder(): MethodResultRecorderImpl {
         val call = MethodCallMessage(
             callId = callIds.incrementAndGet(),
             instanceId = instanceId,
