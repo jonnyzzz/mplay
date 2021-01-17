@@ -65,13 +65,12 @@ class ClassPatcherRecorderInit(
                    }
 
                    visitMethodInsn(context.mplayNewConstructorRecorder)
-
-                   visitLdcInsn(descriptor)
-                   visitMethodInsn(context.mplayNewConstructorCallRecorder)
-
                    dup()
                    loadThis()
                    visitMethodInsn(context.mplayRecorderBuilderVisitInstance)
+
+                   visitLdcInsn(descriptor)
+                   visitMethodInsn(context.mplayNewConstructorCallRecorder)
 
                    for ((idx, type) in argumentTypes.withIndex()) {
                        dup()

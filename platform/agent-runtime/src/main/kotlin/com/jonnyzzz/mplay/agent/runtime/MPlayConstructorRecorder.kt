@@ -5,6 +5,16 @@ package com.jonnyzzz.mplay.agent.runtime
  */
 interface MPlayConstructorRecorder {
     /**
+     * Visits the instance of the class that is created
+     * with methods recording enabled.
+     *
+     * NOTE, this is called from the constructor, so it
+     * is probably not safe to use this instance methods
+     * directly in the visitor.
+     */
+    fun visitInstance(instance: Any) = Unit
+
+    /**
      * Factory method to return an actual constructor visitor
      * for a given type.
      *

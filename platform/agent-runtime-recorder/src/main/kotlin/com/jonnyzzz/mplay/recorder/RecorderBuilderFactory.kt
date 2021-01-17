@@ -1,6 +1,7 @@
 package com.jonnyzzz.mplay.recorder
 
 import com.jonnyzzz.mplay.agent.config.AgentConfig
+import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorderBuilder
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilderFactory
 import java.io.File
 import java.nio.file.Files
@@ -50,8 +51,8 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
         classloaders to writer
     }
 
-    override fun newRecorderBuilderFactory(): RecorderBuilderImpl {
+    override fun newRecorderBuilderFactory(): MPlayInstanceRecorderBuilder {
         val (classloaders, writer) = config.value
-        return RecorderBuilderImpl(classloaders, writer)
+        return InstanceRecorderBuilderImpl(classloaders, writer)
     }
 }
