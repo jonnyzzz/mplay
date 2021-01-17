@@ -8,7 +8,7 @@ import com.jonnyzzz.mplay.agent.runtime.*
  * interface
  */
 open class MPlayMethodCallRecorderImpl(
-    val recorder: MPlayRecorderImpl,
+    val recorder: MPlayCallRecorderImpl,
     val methodName: String,
 ) : MPlayValuesVisitor, MPlayExceptionVisitor, MPlayMethodResultRecorder, MPlayMethodCallRecorder,
     MPlayRunningMethodRecorder {
@@ -57,10 +57,10 @@ open class MPlayMethodCallRecorderImpl(
 }
 
 class MPlayRecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
-    override fun newRecorderBuilderFactory() = MPlayRecorderImpl()
+    override fun newRecorderBuilderFactory() = MPlayCallRecorderImpl()
 }
 
-class MPlayRecorderImpl : MPlayInstanceRecorder, MPlayConstructorRecorder, MPlayInstanceRecorderBuilder {
+class MPlayCallRecorderImpl : MPlayInstanceRecorder, MPlayConstructorRecorder, MPlayConstructorCallRecorder, MPlayInstanceRecorderBuilder {
     lateinit var recordingClassName: String
 
     override fun visitRecordingClassName(recordingClassName: String) {
@@ -73,7 +73,9 @@ class MPlayRecorderImpl : MPlayInstanceRecorder, MPlayConstructorRecorder, MPlay
 
     override fun newInstanceRecorder() = this
 
-    override fun newConstructorRecorder(descriptor: String): MPlayConstructorRecorder {
+    override fun newConstructorRecorder(): MPlayConstructorRecorder = this
+
+    override fun newConstructorCallRecorder(descriptor: String): MPlayConstructorCallRecorder {
         println("MPlayRecorder[$recordingClassName] created with $descriptor")
         return this
     }

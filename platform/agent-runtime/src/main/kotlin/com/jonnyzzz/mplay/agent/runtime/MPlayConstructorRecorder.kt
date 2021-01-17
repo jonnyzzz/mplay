@@ -1,39 +1,18 @@
 package com.jonnyzzz.mplay.agent.runtime
 
 /**
- * The constructor parameters visitor and the instance
- * recorder factory.
- *
- * This class created from the
- * [MPlayInstanceRecorderBuilder.newConstructorRecorder] method.
- *
- * Every constructor parameter is visited only once in the
- * declaration order via the calls to the `visit*` methods
- * of [MPlayValuesVisitor].
- *
- * @see MPlayInstanceRecorderBuilder.newConstructorRecorder
- * @see MPlayValuesVisitor
+ * Usually created via [MPlayInstanceRecorderBuilder.newConstructorRecorder]
  */
-interface MPlayConstructorRecorder : MPlayValuesVisitor {
+interface MPlayConstructorRecorder {
     /**
-     * Visits the instance of the class that is created
-     * with methods recording enabled.
+     * Factory method to return an actual constructor visitor
+     * for a given type.
      *
-     * NOTE, this is called from the constructor, so it
-     * is probably not safe to use this instance methods
-     * directly in the visitor.
-     */
-    fun visitInstance(instance: Any) = Unit
-
-    /**
-     * Creates the recorder for a given instance. This object
-     * will be stored in a field of the class, where recording
-     * is injected.
+     * @param descriptor - non-generic constructor signature in the JVM format,
+     *                     e.g. `(Ljava/lang/String;)V`.
      *
-     * Before calling this method, the implementation calls
-     * the respective `visit*` methods from [MPlayValuesVisitor] to pass
-     * all parameter values in the order of parameters in the
-     * JVM metadata.
+     * It is guaranteed, this method is called after all `visit*` methods of
+     * this type were executed.
      */
-    fun newInstanceRecorder(): MPlayInstanceRecorder
+    fun newConstructorCallRecorder(descriptor: String) : MPlayConstructorCallRecorder
 }

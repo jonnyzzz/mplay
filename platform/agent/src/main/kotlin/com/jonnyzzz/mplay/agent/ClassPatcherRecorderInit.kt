@@ -64,8 +64,10 @@ class ClassPatcherRecorderInit(
                        visitMethodInsn(context.mplayRecorderBuilderVisitConfigClassName)
                    }
 
-                   visitLdcInsn(descriptor)
                    visitMethodInsn(context.mplayNewConstructorRecorder)
+
+                   visitLdcInsn(descriptor)
+                   visitMethodInsn(context.mplayNewConstructorCallRecorder)
 
                    dup()
                    loadThis()

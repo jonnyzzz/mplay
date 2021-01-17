@@ -7,11 +7,11 @@ package com.jonnyzzz.mplay.agent.runtime
  * this instance is used to record method activities
  *
  * Usually created via
- * [MPlayConstructorRecorder.newInstanceRecorder].
+ * [MPlayConstructorCallRecorder.newInstanceRecorder].
  * This instance is cached in the recording type and handles
  * all method calls
  *
- * @see MPlayConstructorRecorder.newInstanceRecorder
+ * @see MPlayConstructorCallRecorder.newInstanceRecorder
  */
 interface MPlayInstanceRecorder {
     /**
