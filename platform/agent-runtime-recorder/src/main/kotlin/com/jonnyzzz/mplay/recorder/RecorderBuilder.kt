@@ -3,6 +3,7 @@ package com.jonnyzzz.mplay.recorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilder
 import com.jonnyzzz.mplay.agent.runtime.MPlayValuesVisitor
+import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.jonnyzzz.mplay.recorder.json.ConstructorCallMessage
 import com.jonnyzzz.mplay.recorder.json.ParametersToJsonVisitor
 import java.util.concurrent.atomic.AtomicInteger
@@ -71,7 +72,7 @@ class RecorderBuilderImpl(
             val config = configClass.constructors
                 .filter { it.parameterCount == constructorParameters.size }
                 .single() //TODO: we could make it smarter here, moreover
-                .newInstance(*constructorParameters.toTypedArray())
+                .newInstance(*constructorParameters.toTypedArray()) as MPlayConfiguration<*>
 
             println("MPlay. Config class ${configClass.name} created")
         }
