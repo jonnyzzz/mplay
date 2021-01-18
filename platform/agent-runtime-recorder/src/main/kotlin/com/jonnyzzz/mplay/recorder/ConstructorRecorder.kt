@@ -4,7 +4,7 @@ import com.jonnyzzz.mplay.agent.runtime.MPlayConstructorCallRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayConstructorRecorder
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 
-class ConstructorRecorderImpl(
+class ConstructorRecorder(
     private val classloaders: RecorderConfigLoader,
     private val perThreadWriter: PerThreadWriter,
     private var recordingClassName: String,

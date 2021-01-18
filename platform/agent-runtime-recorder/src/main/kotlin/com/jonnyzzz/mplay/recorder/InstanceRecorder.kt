@@ -3,7 +3,7 @@ package com.jonnyzzz.mplay.recorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayMethodCallRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
 
-class RecorderImpl(
+class InstanceRecorderImpl(
     private val perThreadWriter: PerThreadWriter,
     private val instanceId: Int,
 ) : MPlayInstanceRecorder {

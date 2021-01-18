@@ -3,7 +3,7 @@ package com.jonnyzzz.mplay.recorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayConstructorRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorderBuilder
 
-class InstanceRecorderBuilderImpl(
+class InstanceRecorderBuilder(
     private val classloaders: RecorderConfigLoader,
     private val perThreadWriter: PerThreadWriter,
 ) : MPlayInstanceRecorderBuilder {
@@ -21,7 +21,7 @@ class InstanceRecorderBuilderImpl(
     }
 
     override fun newConstructorRecorder(): MPlayConstructorRecorder {
-        return ConstructorRecorderImpl(
+        return ConstructorRecorder(
             classloaders = classloaders,
             perThreadWriter = perThreadWriter,
             recordingClassName = recordingClassName ?: error("recordingClassName is not set"),

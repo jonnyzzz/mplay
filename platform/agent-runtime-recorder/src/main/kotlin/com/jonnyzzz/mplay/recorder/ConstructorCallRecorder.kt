@@ -5,6 +5,7 @@ import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayValuesVisitor
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.jonnyzzz.mplay.recorder.json.ConstructorCallMessage
+import com.jonnyzzz.mplay.recorder.visit.ParametersToListVisitor
 import java.util.concurrent.atomic.AtomicInteger
 
 private val instanceIds = AtomicInteger()
@@ -39,6 +40,6 @@ class ConstructorCallRecorderImpl(
 
         //TODO: select constructor to call here via the metadata
 
-        return RecorderImpl(perThreadWriter, call.instanceId)
+        return InstanceRecorderImpl(perThreadWriter, call.instanceId)
     }
 }
