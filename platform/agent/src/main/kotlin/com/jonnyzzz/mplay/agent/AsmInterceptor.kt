@@ -58,7 +58,7 @@ private fun interceptClass(
             visitor = ClassPatcherMethodCallRecorder(context, record, visitor)
         }
 
-        ClassReader(data).accept(visitor, 0)
+        ClassReader(data).accept(visitor, ClassReader.EXPAND_FRAMES)
         return writer.toByteArray()
     } catch (t: Throwable) {
         System.err.println("\n\nMPlay Agent. Failed to instrument class" +

@@ -20,15 +20,13 @@ private fun resolvePrimaryConstructors(clazz: Class<*>) : List<Constructor<*>> {
 
     val reader = ClassReader(clazz.loadClassBytes())
     val resolver = PrimaryConstructorResolver()
-    reader.accept(resolver, 0)
+    reader.accept(resolver, ClassReader.EXPAND_FRAMES)
 
     return allConstructors
         .filter { (_, ref) -> ref !in resolver.constructorsThatCallsThis }
         .map { it.key }
         .filterNotNull()
 }
-
-private fun Int.hasFlag(f: Int) = this and f == f
 
 private class PrimaryConstructorResolver : ClassVisitor(Opcodes.ASM9) {
     private lateinit var classJvmName: String

@@ -113,7 +113,6 @@ class ClassPatcherMethodCallRecorder(
                 }
                 storeArg(i)
             }
-            dup()
             visitMethodInsn(context.methodCallParametersComplete)
             methodRecorderLocalId = newLocal(context.methodCallParametersCompleteType)
             mv.visitVarInsn(ASTORE, methodRecorderLocalId)

@@ -152,6 +152,56 @@ class AgentIntegrationTest {
         }
     }
 
+    @Test
+    fun testClassWithConditionsAndByteCodeFrames() {
+        class TestClass {
+            @Suppress("ConvertSecondaryConstructorToPrimary")
+            constructor(x: Int) {
+                if (x == 0) return
+                if (x > 0) {
+                    println("<INIT> : $x")
+                }
+                if ( x == 0) {
+                    var y = 0
+                    @Suppress("ForEachParameterNotUsed")
+                    (0..x).forEach { y--
+                        y++
+                        if (y < 53) y++
+                    }
+                } else {
+                    var y = 0
+                    @Suppress("ForEachParameterNotUsed")
+                    (0..x).forEach {
+                        y++
+                        if (y < 53) y--
+                    }
+                }
+            }
+
+            fun method(p: Long) {
+                println("Calling the Method of TestClass. ${javaClass.classLoader} $p")
+                if (p > 0) {
+                    method(-p)
+                }
+
+                if (p < 0) {
+                    method(0)
+                }
+
+                var z = 0
+                @Suppress("ForEachParameterNotUsed")
+                (0..p).forEach {
+                    z++
+                    if (z < 53) z--
+                }
+            }
+        }
+
+        doInterceptTest<TestClass>(42) {
+            method(42L)
+        }
+    }
+
     //TODO: test bridge/synthetic methods are not included (e.g. ones from Generic specialization)
     //TODO: handle default methods implementations (at least we may warn that)
 }
