@@ -10,7 +10,7 @@ object MethodCallLocal {
         if (pendingMethods.get() != null) return null
         val nextId = callIds.incrementAndGet()
         pendingMethods.set(nextId)
-        return tryRegisterNextCall()
+        return nextId
     }
 
     fun onCallCompleted(callId: Long) {

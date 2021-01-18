@@ -6,6 +6,9 @@ import java.util.function.Consumer
 class SmokeTestClass {
     fun callMe(x: Int) : Int {
         println("callMe($x)")
+        if (x != 0) {
+            callMe(0)
+        }
         return x
     }
 }
