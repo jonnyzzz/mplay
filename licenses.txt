@@ -2,4 +2,4 @@ This packages uses
 
  - bytebuddy (Apache 2.0)
  - Kotlin (Apache 2.0)
-
+ - ASM (3-Clause BSD License) https://asm.ow2.io/license.html
