@@ -25,6 +25,7 @@ class MethodResultRecorderImpl(
 
     override fun commit() {
         val duration = (finishTime - startTime).coerceAtLeast(0)
+        MethodCallLocal.onCallCompleted(callId)
         perThreadWriter.writeMethodResult(
             MethodCallResult(
                 callId = callId,
