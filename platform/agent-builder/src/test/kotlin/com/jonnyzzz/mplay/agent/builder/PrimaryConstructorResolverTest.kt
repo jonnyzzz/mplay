@@ -3,6 +3,7 @@
 package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.agent.config.MethodRef
+import com.jonnyzzz.mplay.agent.config.ctor
 import com.jonnyzzz.mplay.agent.primaryConstructors
 import org.junit.Assert
 import org.junit.Test
@@ -13,7 +14,7 @@ class ClassInterceptorTest {
     fun `primary constructor detection - default`() {
         class WithOneConstructor
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
-        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor("()V")), constructors)
     }
 
     @Test
@@ -21,7 +22,7 @@ class ClassInterceptorTest {
         class WithOneConstructor(x: String)
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
-        Assert.assertEquals(listOf(MethodRef("<init>", "(Ljava/lang/String;)V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor( "(Ljava/lang/String;)V")), constructors)
     }
 
     @Test
@@ -29,7 +30,7 @@ class ClassInterceptorTest {
         class WithOneConstructor<R>(x: R)
 
         val constructors = primaryConstructors<WithOneConstructor<*>>().map { it.toMethodRef() }
-        Assert.assertEquals(listOf(MethodRef("<init>", "(Ljava/lang/Object;)V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor("(Ljava/lang/Object;)V")), constructors)
     }
 
     @Test
@@ -37,7 +38,7 @@ class ClassInterceptorTest {
         class WithOneConstructor<R : Runnable>(x: R)
 
         val constructors = primaryConstructors<WithOneConstructor<*>>().map { it.toMethodRef() }
-        Assert.assertEquals(listOf(MethodRef("<init>", "(Ljava/lang/Runnable;)V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor("(Ljava/lang/Runnable;)V")), constructors)
     }
 
     @Test
@@ -48,7 +49,7 @@ class ClassInterceptorTest {
         }
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
-        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor("()V")), constructors)
     }
 
     @Test
@@ -60,7 +61,7 @@ class ClassInterceptorTest {
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
         val internalName = "L" + Type.getInternalName(WithOneConstructor::class.java) + ";"
-        Assert.assertEquals(listOf(MethodRef("<init>", "($internalName)V")), constructors)
+        Assert.assertEquals(listOf(MethodRef.ctor("($internalName)V")), constructors)
     }
 
     @Test
@@ -72,8 +73,8 @@ class ClassInterceptorTest {
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
         Assert.assertEquals(listOf(
-            MethodRef("<init>", "(ILjava/lang/String;)V"),
-            MethodRef("<init>", "(J)V"),
+            MethodRef.ctor("(ILjava/lang/String;)V"),
+            MethodRef.ctor("(J)V"),
         ), constructors)
     }
 
@@ -86,7 +87,7 @@ class ClassInterceptorTest {
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
         Assert.assertEquals(listOf(
-            MethodRef("<init>", "(ILjava/lang/String;)V"),
+            MethodRef.ctor("(ILjava/lang/String;)V"),
         ), constructors)
     }
 
@@ -99,7 +100,7 @@ class ClassInterceptorTest {
 
         val constructors = primaryConstructors<WithOneConstructor>().map { it.toMethodRef() }
         Assert.assertEquals(listOf(
-            MethodRef("<init>", "(ILjava/lang/String;)V"),
+            MethodRef.ctor("(ILjava/lang/String;)V"),
         ), constructors)
     }
 }

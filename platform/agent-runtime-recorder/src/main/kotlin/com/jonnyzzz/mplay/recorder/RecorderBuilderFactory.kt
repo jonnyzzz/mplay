@@ -53,6 +53,6 @@ class RecorderBuilderFactoryImpl : MPlayRecorderBuilderFactory {
 
     override fun newRecorderBuilderFactory(): MPlayInstanceRecorderBuilder {
         val (classloaders, writer) = config.value
-        return InstanceRecorderBuilder(classloaders, writer)
+        return InstanceRecorderBuilder(agentConfig, classloaders, writer)
     }
 }

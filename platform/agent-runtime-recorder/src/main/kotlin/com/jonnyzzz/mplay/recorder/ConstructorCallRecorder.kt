@@ -1,5 +1,7 @@
 package com.jonnyzzz.mplay.recorder
 
+import com.jonnyzzz.mplay.agent.config.InterceptClassTask
+import com.jonnyzzz.mplay.agent.config.InterceptConstructorTask
 import com.jonnyzzz.mplay.agent.runtime.MPlayConstructorCallRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayValuesVisitor
@@ -11,9 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger
 private val instanceIds = AtomicInteger()
 
 class ConstructorCallRecorderImpl(
+    private val interceptClassTask: InterceptClassTask,
+    private val ctorTask: InterceptConstructorTask,
     private val perThreadWriter: PerThreadWriter,
-    private val recordingClassName : String,
-    private val constructorDescriptor: String,
     private val config: MPlayConfiguration<*>?,
 
     private val paramsToListVisitor: ParametersToListVisitor = ParametersToListVisitor()
@@ -31,15 +33,19 @@ class ConstructorCallRecorderImpl(
 
         val call = ConstructorCallMessage(
             instanceId = instanceIds.incrementAndGet(),
-            recordingClass = recordingClassName,
-            descriptor = constructorDescriptor,
-            parameters = paramsToListVisitor.collectParameters() //TODO: configuration may affect the way parameres are recorded
+            recordingClass = interceptClassTask.classNameToIntercept,
+            descriptor = ctorTask.methodRef.descriptor,
+            parameters = paramsToListVisitor.collectParameters() //TODO: configuration may affect the way parameters are recorded
         )
 
         perThreadWriter.writerForCurrentThread().writeConstructorCall(call)
 
         //TODO: select constructor to call here via the metadata
 
-        return InstanceRecorderImpl(perThreadWriter, call.instanceId)
+        return InstanceRecorderImpl(
+            interceptClassTask = interceptClassTask,
+            perThreadWriter = perThreadWriter,
+            instanceId = call.instanceId
+        )
     }
 }

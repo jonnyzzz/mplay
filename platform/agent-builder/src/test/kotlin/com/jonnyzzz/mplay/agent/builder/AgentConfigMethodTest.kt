@@ -3,6 +3,7 @@
 package com.jonnyzzz.mplay.agent.builder
 
 import com.jonnyzzz.mplay.agent.config.MethodRef
+import com.jonnyzzz.mplay.agent.config.ctor
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import org.junit.Assert
 import org.junit.Test
@@ -56,7 +57,7 @@ class AgentConfigMethodTest {
         Assert.assertEquals(listOf(Base::class.java.name), agent.classesToOpenMethods.map { it.classNameToIntercept })
         Assert.assertEquals(1, agent.classesToRecordEvents.size)
         Assert.assertEquals(1, agent.classesToOpenMethods.size)
-        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), agent.classesToRecordEvents.single().constructorsToIntercept.map { it.methodRef })
+        Assert.assertEquals(listOf(MethodRef.ctor("()V")), agent.classesToRecordEvents.single().constructorsToIntercept.map { it.methodRef })
     }
 
     @Test
@@ -68,7 +69,7 @@ class AgentConfigMethodTest {
 
         val config = ConfigurationClass.fromClass<Inh>()
         Assert.assertEquals("${config.methodsToIntercept}", 1, config.methodsToIntercept.size)
-        Assert.assertEquals(listOf(MethodRef("<init>", "()V")), config.constructorsToIntercept.map { it.toMethodRef() })
+        Assert.assertEquals(listOf(MethodRef.ctor("()V")), config.constructorsToIntercept.map { it.toMethodRef() })
 
         val method: Method = config.methodsToIntercept.single()
         val agentConfig = config.toInterceptMethodTask(method)

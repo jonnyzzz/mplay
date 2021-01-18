@@ -1,9 +1,11 @@
 package com.jonnyzzz.mplay.recorder
 
+import com.jonnyzzz.mplay.agent.config.AgentConfig
 import com.jonnyzzz.mplay.agent.runtime.MPlayConstructorRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorderBuilder
 
 class InstanceRecorderBuilder(
+    private val agentConfig: AgentConfig,
     private val classloaders: RecorderConfigLoader,
     private val perThreadWriter: PerThreadWriter,
 ) : MPlayInstanceRecorderBuilder {
@@ -12,20 +14,21 @@ class InstanceRecorderBuilder(
 
     override fun visitRecordingClassName(recordingClassName: String) {
         this.recordingClassName = recordingClassName
-        super.visitRecordingClassName(recordingClassName)
     }
 
     override fun visitConfigurationClassName(configurationClassName: String) {
         this.configurationClassName = configurationClassName
-        super.visitConfigurationClassName(configurationClassName)
     }
 
     override fun newConstructorRecorder(): MPlayConstructorRecorder {
+        val interceptClassTask = agentConfig.classesToRecordEvents
+            .singleOrNull { it.classNameToIntercept == recordingClassName && it.configClassName == configurationClassName}
+            ?: return NopRecorder
+
         return ConstructorRecorder(
+            interceptClassTask = interceptClassTask,
             classloaders = classloaders,
             perThreadWriter = perThreadWriter,
-            recordingClassName = recordingClassName ?: error("recordingClassName is not set"),
-            configClassName = configurationClassName,
         )
     }
 }

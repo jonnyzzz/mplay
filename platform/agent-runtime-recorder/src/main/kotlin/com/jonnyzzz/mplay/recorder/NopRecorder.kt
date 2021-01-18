@@ -6,11 +6,12 @@ object NopRecorder : MPlayInstanceRecorder,
     MPlayRunningMethodRecorder,
     MPlayMethodCallRecorder,
     MPlayMethodResultRecorder,
-    MPlayConstructorCallRecorder {
-
+    MPlayConstructorCallRecorder,
+    MPlayConstructorRecorder{
+    override fun newConstructorCallRecorder(descriptor: String) = this
     override fun newInstanceRecorder() = this
     override fun newRunningMethodRecorder() = this
     override fun newMethodResultRecorder() = this
-    override fun commit() = Unit
     override fun newMethodRecorder(methodName: String, descriptor: String) = this
+    override fun commit() = Unit
 }

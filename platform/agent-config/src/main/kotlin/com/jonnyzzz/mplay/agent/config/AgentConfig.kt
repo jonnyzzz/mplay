@@ -65,7 +65,10 @@ data class MethodRef(
     val descriptor: String,
 ) {
     override fun toString() = "$methodName $descriptor"
+    companion object
 }
+
+fun MethodRef.Companion.ctor(descriptor: String) = MethodRef("<init>", descriptor)
 
 @Serializable
 data class InterceptConstructorTask(

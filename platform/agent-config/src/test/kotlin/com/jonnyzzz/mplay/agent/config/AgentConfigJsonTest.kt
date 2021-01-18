@@ -10,7 +10,7 @@ class AgentConfigJsonTest {
         classNameToIntercept = "a",
         configClassName = "b",
         methodsToRecord = listOf(InterceptMethodTask(MethodRef("a", "()V"), null)),
-        constructorsToIntercept = listOf(InterceptConstructorTask(MethodRef("<init>", "()V"))),
+        constructorsToIntercept = listOf(InterceptConstructorTask(MethodRef.ctor("()V"))),
     )
 
     val openTask = OpenClassMethodsTask(
