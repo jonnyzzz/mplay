@@ -5,7 +5,6 @@ import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorder
 import com.jonnyzzz.mplay.agent.runtime.MPlayValuesVisitor
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.jonnyzzz.mplay.recorder.json.ConstructorCallMessage
-import com.jonnyzzz.mplay.recorder.json.ParametersToJsonVisitor
 import java.util.concurrent.atomic.AtomicInteger
 
 private val instanceIds = AtomicInteger()
@@ -16,8 +15,7 @@ class ConstructorCallRecorderImpl(
     private val constructorDescriptor: String,
     private val config: MPlayConfiguration<*>?,
 
-    private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
-    private val paramsToListVisitor: ParametersToListVisitor = ParametersToListVisitor(paramsToJsonVisitor)
+    private val paramsToListVisitor: ParametersToListVisitor = ParametersToListVisitor()
 ) : MPlayConstructorCallRecorder, MPlayValuesVisitor by paramsToListVisitor {
 
     override fun newInstanceRecorder(): MPlayInstanceRecorder {
@@ -34,7 +32,7 @@ class ConstructorCallRecorderImpl(
             instanceId = instanceIds.incrementAndGet(),
             recordingClass = recordingClassName,
             descriptor = constructorDescriptor,
-            parameters = paramsToJsonVisitor.toJson() //TODO: configuration may affect the way parameres are recorded
+            parameters = paramsToListVisitor.collectParameters() //TODO: configuration may affect the way parameres are recorded
         )
 
         perThreadWriter.writerForCurrentThread().writeConstructorCall(call)

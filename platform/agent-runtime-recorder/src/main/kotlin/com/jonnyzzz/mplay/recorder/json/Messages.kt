@@ -1,14 +1,11 @@
 package com.jonnyzzz.mplay.recorder.json
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
-
 data class ConstructorCallMessage (
     val recordingClass: String,
     val instanceId: Int,
 
     val descriptor: String,
-    val parameters: ArrayNode,
+    val parameters: List<Any?>,
 )
 
 data class MethodCallMessage (
@@ -17,7 +14,7 @@ data class MethodCallMessage (
 
     val name: String,
     val descriptor: String,
-    val parameters: ArrayNode,
+    val parameters: List<Any?>,
 )
 
 data class MethodCallResult(
@@ -25,7 +22,7 @@ data class MethodCallResult(
 
     val durationNanos: Long,
 
-    val result: JsonNode? = null,
+    val result: Any? = null,
     val exception: ExceptionMessage? = null,
 )
 

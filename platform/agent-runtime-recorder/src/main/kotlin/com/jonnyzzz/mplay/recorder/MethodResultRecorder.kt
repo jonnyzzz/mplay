@@ -7,7 +7,7 @@ class MethodResultRecorderImpl(
     private val perThreadWriter: JsonLogWriter,
     private val callId: Long,
 
-    private val paramsToJsonVisitor: ParametersToJsonVisitor = ParametersToJsonVisitor(),
+    private val paramsToJsonVisitor: ParametersToListVisitor = ParametersToListVisitor(),
     private val exceptionToValueVisitor: ExceptionToValueVisitor = ExceptionToValueVisitor(),
 ) : MPlayRunningMethodRecorder,
     MPlayMethodResultRecorder,
@@ -29,7 +29,7 @@ class MethodResultRecorderImpl(
             MethodCallResult(
                 callId = callId,
                 durationNanos = duration,
-                result = paramsToJsonVisitor.toJson().takeIf { it.size() > 0 },
+                result = paramsToJsonVisitor.collectParameters().singleOrNull(),
                 exception = exceptionToValueVisitor.toJson()?.let { ExceptionMessage(it.javaClass.name) },
             )
         )
