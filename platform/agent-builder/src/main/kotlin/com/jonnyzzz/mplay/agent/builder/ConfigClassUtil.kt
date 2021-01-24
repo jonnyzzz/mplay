@@ -33,7 +33,7 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
         InterceptClassTask(
             classNameToIntercept = clazz.interceptedRawType.name,
             configClassName = clazz.interceptedRawType.name,
-            methodsToRecord = clazz.methodsToIntercept.map { m -> clazz.toInterceptMethodTask(m) },
+            methodsToRecord = clazz.methodsToIntercept.map { clazz.toInterceptMethodTask(it) },
             constructorsToIntercept = clazz.constructorsToIntercept.map { InterceptConstructorTask(it.toMethodRef()) }
         )
     }
