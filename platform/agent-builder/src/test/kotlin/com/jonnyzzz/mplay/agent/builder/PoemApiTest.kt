@@ -6,28 +6,26 @@ import com.jonnyzzz.mplay.agent.builder.poetry.generateConfigApiPoem
 import org.junit.Test
 
 class PoemApiTest {
+    class TestSimplePoem(val x: String) {
+        fun test(): Int = x.hashCode()
+    }
 
     @Test
     fun testSimplePoem() {
-        class Test(val x: String) {
-            fun test(): Int = x.hashCode()
-        }
-
-        val poem = generateConfigApiPoem(Test::class.java)
+        val poem = generateConfigApiPoem(TestSimplePoem::class.java)
         println(poem)
+    }
+
+    open class B1
+    open class B2
+
+    class TestGenericPoem<B : B1>(val x: String, b: B) {
+        fun <R : B2> test(b: B): R = TODO()
     }
 
     @Test
     fun testGenericPoem() {
-        open class B1
-        open class B2
-
-        class Test<B : B1>(val x: String, b: B) {
-            fun <R : B2> test(b: B): R = TODO()
-        }
-
-        val poem = generateConfigApiPoem(Test::class.java)
+        val poem = generateConfigApiPoem(TestGenericPoem::class.java)
         println(poem)
     }
-
 }

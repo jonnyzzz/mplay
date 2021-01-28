@@ -3,52 +3,50 @@ package com.jonnyzzz.mplay.agent.builder.poetry
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import java.lang.reflect.Constructor
-import java.lang.reflect.Modifier
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
+import java.lang.reflect.*
 
-fun generateConfigApiPoem(interceptType: Type): String {
-
-    return when (interceptType) {
-        is Class<*> -> generateConfigApiPoemForClass(interceptType)
-        is ParameterizedType -> generateConfigApiPoemForGeneric(interceptType)
-        else -> error("Unsupported object type for API generation: $interceptType")
-    }
-
-
-}
-
-private fun generateConfigApiPoemForGeneric(interceptType: ParameterizedType): String {
-    return generateConfigApiPoemForClass(interceptType.rawType as Class<*>, interceptType)
-}
-
-private fun generateConfigApiPoemForClass(
-    interceptRawType: Class<*>,
-    interceptType: Type = interceptRawType
-): String {
-
-    val shortName = interceptRawType.simpleName.replace("$", "_")
+fun generateConfigApiPoem(interceptType: Class<*>): String {
+    val interfaceTypeSpec = generateConfigApiPoemForGeneric(interceptType)
 
     val file = FileSpec.builder(
         "com.jonnyzzz.mplay.poem",
-        "poem-$shortName"
+        "poem-${interfaceTypeSpec.name}"
     )
 
+    file.addType(interfaceTypeSpec)
+    return buildString { file.build().writeTo(this) }
+}
+
+private fun generateConfigApiPoemForGeneric(rawType: Class<*>): TypeSpec {
+    val shortName = rawType.simpleName.replace("$", "_")
     val type = TypeSpec.interfaceBuilder("MPlayRecorderApiFor$shortName")
+
+    val typeVariables = rawType.typeParameters.map { typeArg ->
+        require(typeArg is TypeVariable<*>) { "Type parameter of $rawType is not a variable: $typeArg"}
+        typeArg.asTypeName() as TypeVariableName
+    }
+
+    typeVariables.forEach {
+        type.addTypeVariable(it)
+    }
 
     //make it implement our base interface
     type.addSuperinterface(
-        MPlayConfiguration::class.asClassName().parameterizedBy(interceptType.asTypeName())
+        MPlayConfiguration::class.asClassName().parameterizedBy(
+            rawType.asClassName().let {
+                if (typeVariables.isNotEmpty()) {
+                    it.parameterizedBy(typeVariables)
+                } else it
+            }
+        )
     )
 
-    for (ctor in interceptRawType.constructors) {
+    for (ctor in rawType.constructors) {
         if (!Modifier.isPublic(ctor.modifiers) || Modifier.isStatic(ctor.modifiers)) continue
         type.addFunction(generateConstructorWrapper(ctor))
     }
 
-    file.addType(type.build())
-    return buildString { file.build().writeTo(this) }
+    return type.build()
 }
 
 private fun generateConstructorWrapper(ctor: Constructor<*>) = FunSpec.builder("newDriver").also { f ->
