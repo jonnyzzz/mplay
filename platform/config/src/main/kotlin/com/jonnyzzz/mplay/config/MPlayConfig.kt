@@ -50,6 +50,14 @@ interface MPlayConfiguration<T> {
      * the default value
      */
     val upperLimit: Class<*> get() = java.lang.Object::class.java
+
+    /**
+     * If `true` the MPLay recorder will also record all
+     * nested calls (maybe of a different type) that happens during
+     * the execution of a method from [T]
+     */
+    //TODO: not implemented yet, good feature
+    val allowRecordingNestedCalls : Boolean get() = false
 }
 
 /**
