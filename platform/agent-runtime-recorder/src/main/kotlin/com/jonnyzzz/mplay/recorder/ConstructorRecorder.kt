@@ -37,7 +37,10 @@ class ConstructorRecorder(
             return NopRecorder
         }
 
-        val config = configClassName?.let { newConfigClass(instance, it) }
+        val config: MPlayConfigAdapter? = /*configClassName
+            ?.let { newConfigClass(instance, it) }
+            ?.let { MPlayConfigAdapter(it, descriptor) }
+            */ null
 
         return ConstructorCallRecorderImpl(
             interceptClassTask = interceptClassTask,

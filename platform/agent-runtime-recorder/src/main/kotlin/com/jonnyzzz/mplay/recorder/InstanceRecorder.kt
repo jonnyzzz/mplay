@@ -10,6 +10,7 @@ class InstanceRecorderImpl(
     private val interceptClassTask: InterceptClassTask,
     private val perThreadWriter: PerThreadWriter,
     private val instanceId: Int,
+    private val config: MPlayConfigAdapter?,
 ) : MPlayInstanceRecorder {
     override fun newMethodRecorder(methodName: String, descriptor: String): MPlayMethodCallRecorder {
         val methodTask: InterceptMethodTask = interceptClassTask.methodsToRecord.singleOrNull {

@@ -36,7 +36,7 @@ annotation class MPlayConfig
  *
  * Example:
  * ```
- *  fun driver(<constructorParams>): MPlayConfigurationDriver<T>?
+ *  fun newDriver(<constructorParams>): MPlayConfigurationDriver<T>?
  * ```
  *
  *
@@ -58,5 +58,11 @@ interface MPlayConfiguration<T> {
  * from methods of [MPlayConfiguration<T>] named `
  */
 interface MPlayConfigurationDriver<T> {
-
+    /**
+     * This method is executed to let the driver change
+     * constructor parameters for serialization.
+     * It is up to the same driver to deserialize the changed parameters
+     * when re-playing the code
+     */
+    fun mapConstructorParamsForSerialization(args: List<Any?>) : List<Any?> = args
 }
