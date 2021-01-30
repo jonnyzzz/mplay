@@ -88,8 +88,8 @@ pluginBundle {
     description = "" +
             "Record method calls with telemetry and parameters " +
             "in a real application, than use the recorded data to " +
-            "profile the appliaction part or generate a test code from " +
-            "the caputered traces"
+            "profile the application part or generate a test code from " +
+            "the captured traces"
 
     (plugins) {
         pluginName {
