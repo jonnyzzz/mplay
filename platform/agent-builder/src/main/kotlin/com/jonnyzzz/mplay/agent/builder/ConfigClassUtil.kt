@@ -4,6 +4,7 @@ import com.jonnyzzz.mplay.agent.config.*
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.nio.file.Path
 
 
 inline fun <reified T : MPlayConfiguration<*>> ConfigurationClass.Companion.fromConfigClass() =
@@ -17,7 +18,7 @@ inline fun <reified T> ConfigurationClass.Companion.fromClass(): ConfigurationCl
 fun ConfigurationClass.toClasspath(): ConfigurationClasspath = ConfigurationClasspath(listOf(this))
 
 
-fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
+fun ConfigurationClasspath.toAgentConfig(classpath: List<Path> = listOf()): AgentConfig {
     val methodsToImplement = this.configurationClasses
         .flatMap { clazz ->
             clazz.methodsToIntercept.mapNotNull {
@@ -39,7 +40,7 @@ fun ConfigurationClasspath.toAgentConfig(): AgentConfig {
     }
 
     return AgentConfig(
-        configClasspath = listOf(), //TODO
+        configClasspath = classpath.map { it.toAbsolutePath().toString() },
         classesToOpenMethods = methodsToImplement,
         classesToRecordEvents = methodsToRecord,
     )

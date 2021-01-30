@@ -15,6 +15,7 @@ tasks.run.configure {
 }
 
 val agentJar by configurations.creating
+val agentRuntime by configurations.creating
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -38,6 +39,8 @@ dependencies {
     testImplementation("junit:junit:4.12")
 
     agentJar(project(path = ":agent", configuration = "bundle"))
+    agentRuntime(project(":agent-runtime"))
+    agentRuntime(project(":agent-runtime-recorder"))
 }
 
 java {
@@ -49,6 +52,20 @@ val agentBuilder by configurations.creating
 val agentBuilderArtifact = artifacts.add(agentBuilder.name, tasks.distZip) {
     type = "app"
     builtBy(tasks.distZip)
+}
+
+distributions {
+    main {
+        contents {
+            from(agentRuntime) {
+                into("agent-runtime")
+            }
+
+            from(agentJar) {
+                into("agent")
+            }
+        }
+    }
 }
 
 publishing {
@@ -63,27 +80,12 @@ publishing {
     }
 }
 
-val agentJarRoot = File(buildDir, "agentJar")
-
-val copyMPlayAgent by tasks.creating(Copy::class.java) {
-    from(agentJar.singleFile) {
-        rename { "mplay-agent.jar" }
-        into("mplay-agent")
-    }
-    destinationDir = agentJarRoot
-}
-
-tasks.compileKotlin.configure {
-    dependsOn(copyMPlayAgent)
-}
-
 val versionRoot = File(buildDir, "version")
 
 sourceSets {
     getByName("main") {
         java {
             srcDir(versionRoot)
-            resources.srcDir(agentJarRoot)
         }
     }
 }

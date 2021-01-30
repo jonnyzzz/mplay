@@ -33,8 +33,8 @@ public class MPlayAgent {
 
         //loading class dynamically to make sure it will be resolved from the right classloader
         Class.forName("com.jonnyzzz.mplay.agent.MPlayAgentImpl")
-                .getMethod("premain", String.class, Instrumentation.class)
-                .invoke(null, arguments, instrumentation);
+                .getMethod("premain", String.class, Instrumentation.class, JarFile.class)
+                .invoke(null, arguments, instrumentation, jarFile);
     }
 
     private static JarFile resolveAgentJarFile() {

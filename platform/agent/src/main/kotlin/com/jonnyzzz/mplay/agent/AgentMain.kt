@@ -1,6 +1,5 @@
 package com.jonnyzzz.mplay.agent
 
-import com.jonnyzzz.mplay.agent.config.loadAgentConfig
 import com.jonnyzzz.mplay.agent.generated.MPlayVersions
 import com.jonnyzzz.mplay.agent.runtime.MPlayInstanceRecorderBuilder
 import com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilderFactory
@@ -11,13 +10,15 @@ import java.lang.instrument.Instrumentation
 import java.net.*
 import java.security.ProtectionDomain
 import java.util.*
+import java.util.jar.JarFile
 
 @Suppress("unused")
 object MPlayAgentImpl {
     @JvmStatic
     fun premain(
         arguments: String?,
-        instrumentation: Instrumentation
+        instrumentation: Instrumentation,
+        agentJar: JarFile,
     ) {
         require(javaClass.classLoader == null) {
             "this class should be loaded with bootstrap classloader, but was " + javaClass.classLoader
@@ -25,67 +26,39 @@ object MPlayAgentImpl {
 
         println("Starting MPlay Agent ${MPlayVersions.buildNumber}")
 
-        val args: Map<String, String> = (arguments ?: "")
-            .split(";")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-            .mapNotNull {
-                val kv = it.split("=", limit = 2)
-                kv[0] to (kv.getOrNull(1) ?: return@mapNotNull null)
-            }.toMap().toSortedMap()
+        val agentConfig = resolveAgentConfig(arguments, agentJar)
 
-        val agentConfigArg = "config"
-        val agentConfigFile = args[agentConfigArg]?.let { File(it) }
-            ?: error("Failed to read the $agentConfigArg=<file> parameter from agent configuration")
+        val factory = object: MPlayRecorderBuilderFactory {
+            val recorderClassLoader = lazy {
+                val recorderClasspath = agentConfig.recorderClasspath.map { File(it).toURI().toURL() }.toTypedArray()
+                URLClassLoader(recorderClasspath, null)
+            }
 
-        println("Configuration from $agentConfigFile")
-
-        val agentConfig = runCatching {
-            loadAgentConfig(agentConfigFile.readBytes())
-        }.getOrElse {
-            throw Error("Failed to read or parse agent configuration from $agentConfigFile. ${it.message}", it)
-        }
-
-        println(buildString {
-            appendLine("Classes to record: ")
-            agentConfig
-                .classesToRecordEvents
-                .map { it.classNameToIntercept }
-                .toSortedSet()
-                .joinTo(this, "") { "\n  $it" }
-            appendLine()
-        })
-
-        val recorderClasspathKey = "recorder-classpath"
-        val recorderClasspathFile = args[recorderClasspathKey]
-            .ifNotNull { error("The '$recorderClasspathKey' parameter is missing in javaagent args") }
-            .let { File(it) }
-
-        val recorderClasspath = recorderClasspathFile
-            .runCatching { readText() }
-            .getOrElse { error("Failed to read $recorderClasspathFile. ${it.message}") }
-            .split("\n")
-            .mapNotNull { it.trim().takeIf { it.isNotBlank() } }
-            .map { File(it) }
-            .onEach { require(it.isFile) { "File $it must exist" } }
-            .map { it.toURI().toURL()}
-
-        println("MPlay Recorder Classpath URLs: " + recorderClasspath.joinToString(""){ "\n  $it"} + "\n")
-
-        MPlayRecorderFactory.factory = object: MPlayRecorderBuilderFactory {
             private val factory by lazy {
-                val recorderClassLoader = URLClassLoader(recorderClasspath.toTypedArray(), null)
-                val factory = ServiceLoader.load(MPlayRecorderBuilderFactory::class.java, recorderClassLoader)
-                    .singleOrNull()
-                    ?: error("There are several or nome implementations found for ${MPlayRecorderBuilderFactory::class.java.simpleName} ")
+                val factories = ServiceLoader
+                    .load(MPlayRecorderBuilderFactory::class.java, recorderClassLoader.value)
+                    .toList()
 
+                if (factories.size != 1 ) {
+                    error("There are none or several implementations found for "
+                            + "${MPlayRecorderBuilderFactory::class.java.simpleName} in the classpath:"
+                            + agentConfig.recorderClasspath.toSortedSet().joinToString("") { "\n  $it" }
+                            + "\n implementation classes:"
+                            + factories.map { it.javaClass.name }.sorted().joinToString("") { "\n  $it" }
+                            + "\n please check configuration of the MPlay agent"
+                    )
+                }
+
+                val factory = factories.single()
                 factory.visitAgentConfig(agentConfig)
-                factory.visitAgentParameters(args)
+                factory.visitAgentParameters(agentConfig.recorderParams)
                 factory
             }
 
             override fun newRecorderBuilderFactory(): MPlayInstanceRecorderBuilder = factory.newRecorderBuilderFactory()
         }
+
+        MPlayRecorderFactory.factory = factory
 
         instrumentation.addTransformer(object : ClassFileTransformer {
             private val interceptor = buildClassInterceptor(agentConfig)
@@ -97,6 +70,16 @@ object MPlayAgentImpl {
                 protectionDomain: ProtectionDomain?,
                 classfileBuffer: ByteArray
             ): ByteArray? {
+                if (loader == null) {
+                    //do not deal with bootstrap classloader
+                    return null
+                }
+
+                if (factory.recorderClassLoader.isInitialized() && factory.recorderClassLoader.value === loader) {
+                    //make sure we are not processing our own types
+                    return null
+                }
+
                 val classFqn = className.replace("/", ".")
                 val patched = interceptor.intercept(classFqn, classfileBuffer)
                 if (patched != null) {

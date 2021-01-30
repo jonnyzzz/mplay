@@ -12,8 +12,10 @@ class ConfigurationClasspath(
     val configurationClasses: List<ConfigurationClass>
 )
 
-fun resolveConfigurationFromArgs(args: Array<String>): ConfigurationClasspath {
-    val classpath = resolveAppClassFiles(args)
+fun resolveConfigurationFromArgs(
+    args: Array<String>,
+    classpath: List<Path>
+): ConfigurationClasspath {
     val classloader = loadConfigurationClasses(classpath)
     val configurationClasses = resolveConfigurationClasses(classloader)
 
@@ -24,6 +26,7 @@ fun resolveConfigurationFromArgs(args: Array<String>): ConfigurationClasspath {
 
 private fun loadConfigurationClasses(classpath: List<Path>): URLClassLoader {
     class M
+
     val ourLoader = M::class.java.classLoader
     val urls = classpath.mapNotNull { runCatching { it.toUri().toURL() }.getOrNull() }.toTypedArray()
     return object : URLClassLoader(urls, null) {
@@ -54,7 +57,7 @@ private fun resolveConfigurationClasses(classloader: ClassLoader): List<Configur
     return result
 }
 
-private fun resolveAppClassFiles(args: Array<String>): List<Path> {
+fun resolveAppClassFiles(args: Array<String>): List<Path> {
     val classpathParam = args
         .param("classpath")
         .flatMap { it.split(File.pathSeparator) }

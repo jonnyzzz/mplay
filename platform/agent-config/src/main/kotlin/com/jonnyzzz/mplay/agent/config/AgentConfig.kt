@@ -12,11 +12,14 @@ data class AgentConfig(
     /**
      * classpath of the configuration classes
      */
-    val configClasspath: List<String>,
-
-    val classesToRecordEvents: List<InterceptClassTask>,
-
+    val configClasspath: List<String> = listOf(),
+    val classesToRecordEvents: List<InterceptClassTask> = listOf(),
     val classesToOpenMethods: List<OpenClassMethodsTask> = listOf(),
+
+    /**
+     * classpath of the methods recorder implementation
+     * @see com.jonnyzzz.mplay.agent.runtime.MPlayRecorderBuilderFactory
+     */
+    val recorderClasspath: List<String> = listOf(),
+    val recorderParams: Map<String, String> = mapOf(),
 )
-
-

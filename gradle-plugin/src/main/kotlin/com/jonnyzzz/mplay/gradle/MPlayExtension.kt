@@ -1,6 +1,9 @@
 package com.jonnyzzz.mplay.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.provider.Property
+import java.io.File
 
 
 /**
@@ -12,11 +15,19 @@ import org.gradle.api.Project
  * In exchange, the plugin would generate a subs for all
  * non-trivial places
  */
-interface MPlayExtension
+interface MPlayExtension {
+    val agentTask : MPlayAgentTask
+    val recorderDir : Property<File>
+}
 
+interface MPlayAgentTask : Task {
+    val mplayAgentArgs : Property<String>
+    val mplayAgentPath : Property<File>
+}
 
 open class MPlayExtensionImpl(
-    val project: Project
+    override val agentTask : MPlayAgentTask,
+    override val recorderDir : Property<File>
 ) : MPlayExtension
 
 
