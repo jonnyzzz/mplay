@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 
 
 fun saveAgentConfig(config: AgentConfig): ByteArray {
-    return Json.encodeToString(config).toByteArray(Charsets.UTF_8)
+    return Json { prettyPrint = true }.encodeToString(config).toByteArray(Charsets.UTF_8)
 }
 
 fun loadAgentConfig(config: ByteArray) : AgentConfig {
