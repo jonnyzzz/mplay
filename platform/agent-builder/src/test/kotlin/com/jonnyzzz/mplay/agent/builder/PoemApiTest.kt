@@ -12,7 +12,7 @@ class PoemApiTest {
 
     @Test
     fun testSimplePoem() {
-        val poem = generateConfigApiPoem(TestSimplePoem::class.java)
+        val poem = poem<TestSimplePoem>()
         println(poem)
     }
 
@@ -25,7 +25,12 @@ class PoemApiTest {
 
     @Test
     fun testGenericPoem() {
-        val poem = generateConfigApiPoem(TestGenericPoem::class.java)
+        val poem = poem<TestGenericPoem<*>>()
         println(poem)
     }
+}
+
+private inline fun <reified T> poem(): String {
+    val config = ConfigurationClass.fromClass<T>().toClasspath().toAgentConfig().classesToRecordEvents.single()
+    return generateConfigApiPoem(T::class.java, config)
 }

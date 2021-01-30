@@ -1,12 +1,16 @@
 package com.jonnyzzz.mplay.agent.builder.poetry
 
+import com.jonnyzzz.mplay.agent.builder.toMethodRef
+import com.jonnyzzz.mplay.agent.config.InterceptClassTask
 import com.jonnyzzz.mplay.config.MPlayConfiguration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import java.lang.reflect.*
 
-fun generateConfigApiPoem(interceptType: Class<*>): String {
-    val interfaceTypeSpec = generateConfigApiPoemForGeneric(interceptType)
+fun generateConfigApiPoem(interceptType: Class<*>,
+                          task: InterceptClassTask
+): String {
+    val interfaceTypeSpec = generateConfigApiPoemForGeneric(interceptType, task)
 
     val file = FileSpec.builder(
         "com.jonnyzzz.mplay.poem",
@@ -17,7 +21,9 @@ fun generateConfigApiPoem(interceptType: Class<*>): String {
     return buildString { file.build().writeTo(this) }
 }
 
-private fun generateConfigApiPoemForGeneric(rawType: Class<*>): TypeSpec {
+private fun generateConfigApiPoemForGeneric(rawType: Class<*>,
+                                            task: InterceptClassTask
+): TypeSpec {
     val shortName = rawType.simpleName.replace("$", "_")
     val type = TypeSpec.interfaceBuilder("MPlayRecorderApiFor$shortName")
 
@@ -43,6 +49,8 @@ private fun generateConfigApiPoemForGeneric(rawType: Class<*>): TypeSpec {
 
     for (ctor in rawType.constructors) {
         if (!Modifier.isPublic(ctor.modifiers) || Modifier.isStatic(ctor.modifiers)) continue
+        if (!task.constructorsToIntercept.any { it.methodRef == ctor.toMethodRef() }) continue
+
         type.addFunction(generateConstructorWrapper(ctor))
     }
 
